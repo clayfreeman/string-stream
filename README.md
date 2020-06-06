@@ -10,6 +10,9 @@ This package provides a library to facilitate interacting with strings using the
 **NOTE**: This project is currently under active development. Usage is
 discouraged until version 1.0.0 is released.
 
+The goal of this package is to provide similar functionality in PHP to that of
+C++'s `iostream`; Analagous methods are intended to behave similarly.
+
 ## Installation
 
 To install this package using Composer, run the following command.
