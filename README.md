@@ -1,4 +1,5 @@
 ![PHPUnit](https://github.com/clayfreeman/string-stream/workflows/PHPUnit/badge.svg)
+[![Maintainability](https://api.codeclimate.com/v1/badges/1f8b86e65ff9b355b894/maintainability)](https://codeclimate.com/github/clayfreeman/string-stream/maintainability)
 
 # string-stream
 
