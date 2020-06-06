@@ -219,17 +219,45 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(substr($input, -3), $stream->getContents());
 
     $stream->rewind();
-    $this->assertSame('sam', $stream->getContents(strlen($input), 'p'));
+    $this->assertSame($expected = 'sam', $stream->getContents(strlen($input), 'p'));
+    $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame('s', $stream->getContents(1, 'p'));
+    $this->assertSame($expected = 's', $stream->getContents(1, 'p'));
+    $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame('sample', $stream->getContents(strlen($input), 'z'));
+    $this->assertSame($expected = 'sample', $stream->getContents(strlen($input), 'z'));
+    $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame('sample', $stream->getContents(strlen($input)));
+    $this->assertSame($expected = 'sample', $stream->getContents(strlen($input)));
+    $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame('sample', $stream->getContents());
+    $this->assertSame($expected = 'sample', $stream->getContents());
+    $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame('sample', $stream->getContents(-1));
+    $this->assertSame($expected = 'sample', $stream->getContents(-1));
+    $this->assertSame(strlen($expected), $stream->tell());
+  }
+
+  /**
+   * @covers \ClayFreeman\StringStream::ignore()
+   */
+  public function testIgnore(): void {
+    $stream = new StringStream($input = 'sample');
+
+    $stream->ignore();
+    $this->assertSame(strlen($input), $stream->tell());
+
+    $stream->rewind();
+    $stream->ignore($max = 3);
+    $this->assertSame($max, $stream->tell());
+
+    $stream->rewind();
+    $stream->ignore(0, 'p');
+    $this->assertSame(strlen($input), $stream->tell());
+
+    $stream->rewind();
+    $stream->ignore($max = strlen($input), $delim = 'p');
+    $this->assertSame(strpos($input, $delim) + strlen($delim), $stream->tell());
   }
 
   /**

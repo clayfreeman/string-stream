@@ -123,6 +123,8 @@ class StringStream implements StreamInterface {
    *    - SEEK_END: Set position to end-of-stream plus offset.
    *    - SEEK_SET: Set position equal to offset bytes.
    *
+   * @internal
+   *
    * @return int
    *   The theoretical final position resulting from a potential seek operation.
    */
@@ -239,7 +241,43 @@ class StringStream implements StreamInterface {
   }
 
   /**
+   * Read up to N bytes or until the supplied delimiter is found.
+   *
+   * @param int $length
+   *   The maximum length of bytes to read. It is the responsibility of the
+   *   caller to ensure that this value is greater than zero.
+   * @param string $delim
+   *   Stop reading at the supplied delimiter. It is the responsibility of the
+   *   caller to ensure that this value has a length greater than zero.
+   * @param bool $discard
+   *   Whether the stream should seek past the supplied delimiter (TRUE) or stop
+   *   ahead of it (FALSE).
+   *
+   * @internal
+   *
+   * @return string
+   *   The bytes read from the stream.
+   */
+  protected function readDelimited(int $length, string $delim, bool $discard): string {
+    $pos = $this->tell();
+    // Read up to $length characters, or until $delim is found.
+    $result = stream_get_line($this->buffer, $length, $delim);
+
+    // Check whether the delimiter shouldn't be discarded.
+    if (!$discard) {
+      $this->seek($pos + strlen($result));
+    }
+
+    return $result;
+  }
+
+  /**
    * {@inheritdoc}
+   *
+   * @param int $length
+   *   The maximum length of bytes to read (default: 0; all remaining bytes).
+   * @param string $delim
+   *   Stop reading at the supplied delimiter. Only used if $length is positive.
    */
   public function getContents(int $length = 0, string $delim = ''): string {
     // Check if the user wants all remaining bytes in the stream.
@@ -254,17 +292,38 @@ class StringStream implements StreamInterface {
       }
     }
     // Check if a delimiter was supplied.
-    elseif ($delim !== '') {
-      // Read up to $length characters, or until $delim is found.
-      return stream_get_line($this->buffer, $length, $delim);
+    elseif (strlen($delim) > 0) {
+      return $this->readDelimited($length, $delim, FALSE);
     }
     else {
-      // Read the requested number of characters.
       return $this->read($length);
     }
 
     // By default, return an empty string. This point should never be reached.
     return '';
+  }
+
+  /**
+   * Read & throw away bytes using ::getContents().
+   *
+   * @param int $length
+   *   The maximum length of bytes to read (default: 0; all remaining bytes).
+   * @param string $delim
+   *   Stop reading at the supplied delimiter. Only used if $length is positive.
+   *
+   * @see ::getContents()
+   *   For more information about how this method works.
+   */
+  public function ignore(int $length = 0, string $delim = ''): void {
+    // Check if the request should use non-delimited functionality.
+    if ($length <= 0 || strlen($delim) === 0) {
+      // Defer the request to ::getContents().
+      $this->getContents($length, $delim);
+    }
+    else {
+      // Attempt to discard a delimited string (including delimiter).
+      $this->readDelimited($length, $delim, TRUE);
+    }
   }
 
   /**
