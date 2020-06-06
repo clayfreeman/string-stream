@@ -241,16 +241,29 @@ class StringStream implements StreamInterface {
   /**
    * {@inheritdoc}
    */
-  public function getContents(): string {
-    // Determine the number of remaining bytes in the stream.
-    $length = $this->getSize() - $this->tell();
+  public function getContents(int $length = 0, string $delim = ''): string {
+    // Check if the user wants all remaining bytes in the stream.
+    if ($length <= 0) {
+      // Determine the number of remaining bytes in the stream.
+      $length = $this->getSize() - $this->tell();
 
-    // Ensure that there are bytes to read before continuing.
-    if ($length > 0) {
-      // Attempt to read and return the remainder of the buffer.
+      // Ensure that there are bytes to read before continuing.
+      if ($length > 0) {
+        // Attempt to read and return the remainder of the buffer.
+        return $this->read($length);
+      }
+    }
+    // Check if a delimiter was supplied.
+    elseif ($delim !== '') {
+      // Read up to $length characters, or until $delim is found.
+      return stream_get_line($this->buffer, $length, $delim);
+    }
+    else {
+      // Read the requested number of characters.
       return $this->read($length);
     }
 
+    // By default, return an empty string. This point should never be reached.
     return '';
   }
 

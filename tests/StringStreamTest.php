@@ -217,6 +217,19 @@ final class StringStreamTest extends TestCase {
 
     $stream->seek(-3, SEEK_END);
     $this->assertSame(substr($input, -3), $stream->getContents());
+
+    $stream->rewind();
+    $this->assertSame('sam', $stream->getContents(strlen($input), 'p'));
+    $stream->rewind();
+    $this->assertSame('s', $stream->getContents(1, 'p'));
+    $stream->rewind();
+    $this->assertSame('sample', $stream->getContents(strlen($input), 'z'));
+    $stream->rewind();
+    $this->assertSame('sample', $stream->getContents(strlen($input)));
+    $stream->rewind();
+    $this->assertSame('sample', $stream->getContents());
+    $stream->rewind();
+    $this->assertSame('sample', $stream->getContents(-1));
   }
 
   /**
