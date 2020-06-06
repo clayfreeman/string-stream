@@ -110,16 +110,24 @@ class StringStream implements StreamInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Calculate the final seek position from an offset and whence.
+   *
+   * This method is read-only and DOES NOT modify the stream offset.
+   *
+   * @param int $offset
+   *   The desired offset from $whence.
+   * @param int $whence
+   *   Specifies how the cursor position will be calculated. Valid values are
+   *   identical to the built-in PHP $whence values for `fseek()`:
+   *    - SEEK_CUR: Set position to current location plus offset.
+   *    - SEEK_END: Set position to end-of-stream plus offset.
+   *    - SEEK_SET: Set position equal to offset bytes.
+   *
+   * @return int
+   *   The theoretical final position resulting from a potential seek operation.
    */
-  public function seek($offset, $whence = SEEK_SET): void {
-    // Ensure that we have a valid buffer before continuing.
-    if (!\is_resource($this->buffer)) {
-      throw new \RuntimeException();
-    }
-
+  protected function calculateSeekPosition($offset, $whence): int {
     $pos = $this->tell();
-    $size = $this->getSize();
 
     // Calculate the final offset into the stream.
     switch ($whence) {
@@ -135,6 +143,16 @@ class StringStream implements StreamInterface {
         $pos = $offset;
         break;
     }
+
+    return $pos;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function seek($offset, $whence = SEEK_SET): void {
+    $pos = $this->calculateSeekPosition($offset, $whence);
+    $size = $this->getSize();
 
     // Check if the final offset is past EOF.
     if ($pos > $size) {
