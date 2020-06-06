@@ -126,7 +126,7 @@ class StringStream implements StreamInterface {
    * @return int
    *   The theoretical final position resulting from a potential seek operation.
    */
-  protected function calculateSeekPosition($offset, $whence): int {
+  protected function calculateSeekPosition(int $offset, int $whence): int {
     $pos = $this->tell();
 
     // Calculate the final offset into the stream.
