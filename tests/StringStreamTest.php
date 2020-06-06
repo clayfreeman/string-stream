@@ -208,4 +208,16 @@ final class StringStreamTest extends TestCase {
     $this->assertNull($stream->getMetadata('test'));
   }
 
+  /**
+   * @covers \ClayFreeman\StringStream::isReadable()
+   * @covers \ClayFreeman\StringStream::isSeekable()
+   * @covers \ClayFreeman\StringStream::isWritable()
+   */
+  public function testFeatureFlags(): void {
+    $stream = new StringStream($input = 'sample');
+    $this->assertSame(TRUE, $stream->isReadable());
+    $this->assertSame(TRUE, $stream->isSeekable());
+    $this->assertSame(TRUE, $stream->isWritable());
+  }
+
 }
