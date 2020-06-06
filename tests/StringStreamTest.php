@@ -215,7 +215,7 @@ final class StringStreamTest extends TestCase {
    */
   public function testFeatureFlags(): void {
     $stream = new StringStream($input = 'sample');
-    $this->assertSame(FALSE, $stream->isReadable());
+    $this->assertSame(TRUE, $stream->isReadable());
     $this->assertSame(TRUE, $stream->isSeekable());
     $this->assertSame(TRUE, $stream->isWritable());
   }
