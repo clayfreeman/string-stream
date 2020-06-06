@@ -6,9 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Install system dependencies'
-        run: 'sudo apt install -y composer php'
+        run: 'sudo apt install -y composer php php-xdebug'
       - uses: actions/checkout@v2
       - name: 'Install Composer dependencies'
         run: 'composer install --no-interaction'
       - name: 'Run PHPUnit tests'
-        run: './vendor/bin/phpunit'
+        uses: paambaati/codeclimate-action@v2.6.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        coverageCommand: './vendor/bin/phpunit'
+        coverageLocations: clover.xml:clover
+        debug: true
