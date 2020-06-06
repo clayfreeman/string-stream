@@ -127,12 +127,17 @@ final class StringStreamTest extends TestCase {
     $stream->seek($offset3 = -2, SEEK_END);
     $this->assertSame($stream->getSize() + $offset3, $stream->tell());
 
+    $stream->seek($offset4 = $stream->getSize() + 100, SEEK_SET);
+    $this->assertSame($offset4, $stream->getSize());
+    $this->assertSame($offset4, $stream->tell());
+    $this->assertSame(str_pad($input, $offset4, "\0"), (string) $stream);
+
     $this->expectException(\RuntimeException::class);
-    $stream->seek($offset4 = -2, SEEK_SET);
+    $stream->seek($offset5 = -2, SEEK_SET);
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
-    $stream->seek($offset5 = 1, SEEK_SET);
+    $stream->seek($offset6 = 1, SEEK_SET);
   }
 
   /**
@@ -161,8 +166,8 @@ final class StringStreamTest extends TestCase {
     $this->assertSame($input . $input, (string) $stream);
 
     $stream->seek(0);
-    $stream->write('junk');
-    $this->assertSame('junklesample', (string) $stream);
+    $stream->write($tmp = 'junk');
+    $this->assertSame($tmp . substr($input . $input, strlen($tmp)), (string) $stream);
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
@@ -184,6 +189,22 @@ final class StringStreamTest extends TestCase {
     $stream->close();
     $this->expectException(\RuntimeException::class);
     $stream->read(1);
+  }
+
+  /**
+   * @covers \ClayFreeman\StringStream::peek()
+   */
+  public function testPeek(): void {
+    $offset = 0;
+    $stream = new StringStream($input = 'sample');
+    $this->assertSame(substr($input, $offset, 1), $stream->peek());
+    $this->assertSame($offset, $stream->tell());
+    $this->assertSame(substr($input, $offset, 1), $stream->peek());
+    $this->assertSame($offset, $stream->tell());
+    $this->assertSame(substr($input, $offset, 1), $chr = $stream->read(1)); $offset += strlen($chr);
+    $this->assertSame($offset, $stream->tell());
+    $this->assertSame(substr($input, $offset, 1), $stream->peek());
+    $this->assertSame($offset, $stream->tell());
   }
 
   /**
