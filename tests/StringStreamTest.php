@@ -197,6 +197,7 @@ final class StringStreamTest extends TestCase {
   public function testPeek(): void {
     $offset = 0;
     $stream = new StringStream($input = 'sample');
+
     $this->assertSame(substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
     $this->assertSame(substr($input, $offset, 1), $stream->peek());
@@ -205,6 +206,11 @@ final class StringStreamTest extends TestCase {
     $this->assertSame($offset, $stream->tell());
     $this->assertSame(substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
+
+    $stream->getContents();
+    $this->assertFalse($stream->eof());
+    $this->assertSame('', $stream->peek());
+    $this->assertTrue($stream->eof());
   }
 
   /**

@@ -263,7 +263,10 @@ class StringStream implements StreamInterface {
   public function peek(): string {
     $pos = $this->tell();
     $chr = $this->read(1);
-    $this->seek($pos);
+
+    if ($chr !== '') {
+      $this->seek($pos);
+    }
 
     return $chr;
   }
