@@ -1,0 +1,14 @@
+name: 'PHPUnit'
+on: [push]
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Install system dependencies'
+        run: 'sudo apt install -y composer php'
+      - uses: actions/checkout@v2
+      - name: 'Install Composer dependencies'
+        run: 'composer install --no-interaction'
+      - name: 'Run PHPUnit tests'
+        run: './vendor/bin/phpunit'
