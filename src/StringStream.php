@@ -9,6 +9,10 @@ use Psr\Http\Message\StreamInterface;
 /**
  * Provides a wrapper used to treat strings as in-memory streams.
  *
+ * @phpcs:disable Drupal.NamingConventions.ValidFunctionName.MethodDoubleUnderscore
+ *   This is needed to avoid an erroneous warning about the __serialize() and
+ *   __unserialize() methods in the below class.
+ *
  * @license http://mozilla.org/MPL/2.0/ MPL-2.0
  * This file is subject to the terms of the Mozilla Public License, v2.0. If a
  * copy of the MPL was not distributed with this file, You can obtain one at the
@@ -38,12 +42,29 @@ class StringStream implements StreamInterface {
   }
 
   /**
+   * Magic method to help serialize the object.
+   *
+   * @return array
+   *   An array of data that should be serialized.
+   */
+  public function __serialize(): array {
+    return ['buffer' => (string) $this];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function __toString(): string {
     // Rewind to the beginning of the stream and fetch the remaining contents.
     $this->rewind();
     return $this->getContents();
+  }
+
+  /**
+   * Magic method to help unserialize the object.
+   */
+  public function __unserialize(array $data): void {
+    $this->__construct($data['buffer']);
   }
 
   /**

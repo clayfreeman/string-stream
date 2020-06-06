@@ -282,4 +282,13 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(TRUE, $stream->isWritable());
   }
 
+  /**
+   * @covers \ClayFreeman\StringStream::__serialize()
+   * @covers \ClayFreeman\StringStream::__unserialize()
+   */
+  public function testSerialization(): void {
+    $stream = new StringStream($input = 'sample');
+    $this->assertSame($input, (string) unserialize(serialize($stream)));
+  }
+
 }
