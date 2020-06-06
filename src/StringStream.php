@@ -28,6 +28,13 @@ class StringStream implements StreamInterface {
   protected $buffer = NULL;
 
   /**
+   * Clones the internal state of this object.
+   */
+  public function __clone() {
+    $this->__construct((string) $this);
+  }
+
+  /**
    * Constructs a StringStream object.
    *
    * @param string $input

@@ -291,4 +291,21 @@ final class StringStreamTest extends TestCase {
     $this->assertSame($input, (string) unserialize(serialize($stream)));
   }
 
+  /**
+   * @covers \ClayFreeman\StringStream::__clone()
+   */
+  public function testClone(): void {
+    $stream = new StringStream($input = 'sample');
+    $stream2 = clone $stream;
+
+    $this->assertSame((string) $stream, (string) $stream2);
+
+    $stream2->rewind();
+    $stream2->write($write = 'junk');
+    $this->assertSame($write . substr($input, strlen($write)), (string) $stream2);
+    $this->assertSame($input, (string) $stream);
+
+    $this->assertNotEquals((string) $stream, (string) $stream2);
+  }
+
 }
