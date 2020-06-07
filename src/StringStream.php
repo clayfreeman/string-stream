@@ -47,11 +47,11 @@ class StringStream implements \Serializable, StreamInterface {
   /**
    * Magic method to help serialize the object.
    *
-   * @return array
-   *   An array of data that should be serialized.
+   * @return string
+   *   The entire contents of the buffer.
    */
-  public function serialize(): array {
-    return ['buffer' => (string) $this];
+  public function serialize(): string {
+    return (string) $this;
   }
 
   /**
@@ -65,9 +65,12 @@ class StringStream implements \Serializable, StreamInterface {
 
   /**
    * Magic method to help unserialize the object.
+   *
+   * @param string $serialized
+   *   The buffer contents.
    */
-  public function unserialize(array $data): void {
-    $this->__construct($data['buffer']);
+  public function unserialize($serialized): void {
+    $this->__construct($serialized);
   }
 
   /**

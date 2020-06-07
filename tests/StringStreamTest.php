@@ -289,8 +289,8 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::__serialize()
-   * @covers \ClayFreeman\StringStream::__unserialize()
+   * @covers \ClayFreeman\StringStream::serialize()
+   * @covers \ClayFreeman\StringStream::unserialize()
    */
   public function testSerialization(): void {
     $stream = new StringStream($input = 'sample');
