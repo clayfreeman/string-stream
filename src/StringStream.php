@@ -291,7 +291,9 @@ class StringStream implements \Serializable, StreamInterface {
   protected function readDelimited(int $length, string $delim, bool $discard): string {
     $pos = $this->tell();
     // Read up to $length characters, or until $delim is found.
-    $result = stream_get_line($this->buffer, $length, $delim);
+    if (($result = stream_get_line($this->buffer, $length, $delim)) === FALSE) {
+      $result = '';
+    }
 
     // Check whether the delimiter shouldn't be discarded.
     if (!$discard) {
