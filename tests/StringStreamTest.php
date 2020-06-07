@@ -225,16 +225,18 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(substr($input, -3), $stream->getContents());
 
     $stream->rewind();
-    $this->assertSame($expected = 'sam', $stream->getContents(strlen($input), 'p'));
+    $this->assertSame($expected = 'sam', $stream->getContents($stream->getSize(), 'p'));
     $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
     $this->assertSame($expected = 's', $stream->getContents(1, 'p'));
     $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame($expected = 'sample', $stream->getContents(strlen($input), 'z'));
+    $this->assertSame($expected = 'sample', $stream->getContents($stream->getSize(), 'z'));
     $this->assertSame(strlen($expected), $stream->tell());
+    $this->assertSame($expected = '', $stream->getContents($stream->getSize(), 'z'));
+    $this->assertSame($stream->getSize(), $stream->tell());
     $stream->rewind();
-    $this->assertSame($expected = 'sample', $stream->getContents(strlen($input)));
+    $this->assertSame($expected = 'sample', $stream->getContents($stream->getSize()));
     $this->assertSame(strlen($expected), $stream->tell());
     $stream->rewind();
     $this->assertSame($expected = 'sample', $stream->getContents());
