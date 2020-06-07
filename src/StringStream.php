@@ -14,7 +14,7 @@ use Psr\Http\Message\StreamInterface;
  * copy of the MPL was not distributed with this file, You can obtain one at the
  * above URI.
  */
-class StringStream implements Serializable, StreamInterface {
+class StringStream implements \Serializable, StreamInterface {
 
   /**
    * The internal memory buffer.
