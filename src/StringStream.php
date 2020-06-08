@@ -47,23 +47,6 @@ class StringStream implements \Serializable, StreamInterface {
   }
 
   /**
-   * Magic method to help serialize the object.
-   *
-   * @return string
-   *   The entire contents of the buffer.
-   */
-  public function serialize(): string {
-    $pos = $this->tell();
-    $str = json_encode([
-      'buffer' => (string) $this,
-      'pos' => $pos,
-    ]);
-
-    $this->seek($pos);
-    return $str;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function __toString(): string {
@@ -74,81 +57,6 @@ class StringStream implements \Serializable, StreamInterface {
     $this->seek($pos);
 
     return $str;
-  }
-
-  /**
-   * Magic method to help unserialize the object.
-   *
-   * @param string $serialized
-   *   The buffer contents.
-   */
-  public function unserialize($serialized): void {
-    $state = json_decode($serialized);
-    $this->__construct($state->buffer);
-    $this->seek($state->pos);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function close(): void {
-    // Ensure the buffer is valid before closing it.
-    if (\is_resource($this->buffer)) {
-      \fclose($this->buffer);
-      $this->buffer = NULL;
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function detach() {
-    // Move the resource into a local variable and reset the internal state.
-    $resource = $this->buffer;
-    $this->buffer = NULL;
-
-    // Return the now-detatched buffer resource.
-    return $resource;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getSize(): ?int {
-    // Check if the buffer is valid before retrieving its length.
-    if (\is_resource($this->buffer)) {
-      return \fstat($this->buffer)['size'];
-    }
-
-    return NULL;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function tell(): int {
-    // Ensure that the buffer is valid before continuing.
-    if (!\is_resource($this->buffer)) {
-      throw new \RuntimeException();
-    }
-
-    return \ftell($this->buffer);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function eof(): bool {
-    // Check if we've reached EOF on a valid buffer; FALSE for invalid buffer.
-    // This flag will only be set after a read is attempted at EOF.
-    return \is_resource($this->buffer) ? \feof($this->buffer) : FALSE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isSeekable(): bool {
-    return TRUE;
   }
 
   /**
@@ -194,49 +102,109 @@ class StringStream implements \Serializable, StreamInterface {
   /**
    * {@inheritdoc}
    */
-  public function seek($offset, $whence = SEEK_SET): void {
-    $pos = $this->calculateSeekPosition($offset, $whence);
-    $size = $this->getSize();
+  public function close(): void {
+    // Ensure the buffer is valid before closing it.
+    if (\is_resource($this->buffer)) {
+      \fclose($this->buffer);
+      $this->buffer = NULL;
+    }
+  }
 
-    // Check if the final offset is past EOF.
-    if ($pos > $size) {
-      // Calculate the number of bytes used to pad the stream.
-      $pad_bytes = $pos - $size;
+  /**
+   * {@inheritdoc}
+   */
+  public function detach() {
+    // Move the resource into a local variable and reset the internal state.
+    $resource = $this->buffer;
+    $this->buffer = NULL;
 
-      // Seek to the end of the buffer and pad some NUL bytes to reach $pos.
-      if (\fseek($this->buffer, 0, SEEK_END) !== 0 || \fwrite($this->buffer, str_pad("", $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
-        throw new \RuntimeException();
+    // Return the now-detatched buffer resource.
+    return $resource;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function eof(): bool {
+    // Check if we've reached EOF on a valid buffer; FALSE for invalid buffer.
+    // This flag will only be set after a read is attempted at EOF.
+    return \is_resource($this->buffer) ? \feof($this->buffer) : FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @param int $length
+   *   The maximum length of bytes to read (default: 0; all remaining bytes).
+   * @param string $delim
+   *   Stop reading at the supplied delimiter. Only used if $length is positive.
+   */
+  public function getContents(int $length = 0, string $delim = ''): string {
+    // Check if the user wants all remaining bytes in the stream.
+    if ($length <= 0) {
+      // Determine the number of remaining bytes in the stream.
+      $length = $this->getSize() - $this->tell();
+
+      // Ensure that there are bytes to read before continuing.
+      if ($length > 0) {
+        // Attempt to read and return the remainder of the buffer.
+        return $this->read($length);
       }
     }
-    elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
-      throw new \RuntimeException();
+    // Check if a delimiter was supplied.
+    elseif (strlen($delim) > 0) {
+      return $this->readDelimited($length, $delim, FALSE);
     }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function rewind(): void {
-    $this->seek(0);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isWritable(): bool {
-    return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function write($string): int {
-    // Attempt to write to a valid buffer, throw an exception on failure.
-    if (!\is_resource($this->buffer) || ($bytes = \fwrite($this->buffer, $string)) === FALSE) {
-      throw new \RuntimeException();
+    else {
+      return $this->read($length);
     }
 
-    return $bytes;
+    // By default, return an empty string. This point should never be reached.
+    return '';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMetadata($key = NULL) {
+    // If a specific key was requested, return NULL. Otherwise return an empty
+    // array. This class doesn't support metadata, so empty values are returned.
+    return $key !== NULL ? NULL : [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSize(): ?int {
+    // Check if the buffer is valid before retrieving its length.
+    if (\is_resource($this->buffer)) {
+      return \fstat($this->buffer)['size'];
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Read & throw away bytes using ::getContents().
+   *
+   * @param int $length
+   *   The maximum length of bytes to read (default: 0; all remaining bytes).
+   * @param string $delim
+   *   Stop reading at the supplied delimiter. Only used if $length is positive.
+   *
+   * @see ::getContents()
+   *   For more information about how this method works.
+   */
+  public function ignore(int $length = 0, string $delim = ''): void {
+    // Check if the request should use non-delimited functionality.
+    if ($length <= 0 || strlen($delim) === 0) {
+      // Defer the request to ::getContents().
+      $this->getContents($length, $delim);
+    }
+    else {
+      // Attempt to discard a delimited string (including delimiter).
+      $this->readDelimited($length, $delim, TRUE);
+    }
   }
 
   /**
@@ -249,13 +217,15 @@ class StringStream implements \Serializable, StreamInterface {
   /**
    * {@inheritdoc}
    */
-  public function read($length): string {
-    // Attempt to read from a valid buffer, throw an exception on failure.
-    if (!is_resource($this->buffer) || ($string = \fread($this->buffer, $length)) === FALSE) {
-      throw new \RuntimeException();
-    }
+  public function isSeekable(): bool {
+    return TRUE;
+  }
 
-    return $string;
+  /**
+   * {@inheritdoc}
+   */
+  public function isWritable(): bool {
+    return TRUE;
   }
 
   /**
@@ -283,6 +253,18 @@ class StringStream implements \Serializable, StreamInterface {
     }
 
     return $chr;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function read($length): string {
+    // Attempt to read from a valid buffer, throw an exception on failure.
+    if (!is_resource($this->buffer) || ($string = \fread($this->buffer, $length)) === FALSE) {
+      throw new \RuntimeException();
+    }
+
+    return $string;
   }
 
   /**
@@ -320,66 +302,84 @@ class StringStream implements \Serializable, StreamInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @param int $length
-   *   The maximum length of bytes to read (default: 0; all remaining bytes).
-   * @param string $delim
-   *   Stop reading at the supplied delimiter. Only used if $length is positive.
    */
-  public function getContents(int $length = 0, string $delim = ''): string {
-    // Check if the user wants all remaining bytes in the stream.
-    if ($length <= 0) {
-      // Determine the number of remaining bytes in the stream.
-      $length = $this->getSize() - $this->tell();
-
-      // Ensure that there are bytes to read before continuing.
-      if ($length > 0) {
-        // Attempt to read and return the remainder of the buffer.
-        return $this->read($length);
-      }
-    }
-    // Check if a delimiter was supplied.
-    elseif (strlen($delim) > 0) {
-      return $this->readDelimited($length, $delim, FALSE);
-    }
-    else {
-      return $this->read($length);
-    }
-
-    // By default, return an empty string. This point should never be reached.
-    return '';
-  }
-
-  /**
-   * Read & throw away bytes using ::getContents().
-   *
-   * @param int $length
-   *   The maximum length of bytes to read (default: 0; all remaining bytes).
-   * @param string $delim
-   *   Stop reading at the supplied delimiter. Only used if $length is positive.
-   *
-   * @see ::getContents()
-   *   For more information about how this method works.
-   */
-  public function ignore(int $length = 0, string $delim = ''): void {
-    // Check if the request should use non-delimited functionality.
-    if ($length <= 0 || strlen($delim) === 0) {
-      // Defer the request to ::getContents().
-      $this->getContents($length, $delim);
-    }
-    else {
-      // Attempt to discard a delimited string (including delimiter).
-      $this->readDelimited($length, $delim, TRUE);
-    }
+  public function rewind(): void {
+    $this->seek(0);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getMetadata($key = NULL) {
-    // If a specific key was requested, return NULL. Otherwise return an empty
-    // array. This class doesn't support metadata, so empty values are returned.
-    return $key !== NULL ? NULL : [];
+  public function seek($offset, $whence = SEEK_SET): void {
+    $pos = $this->calculateSeekPosition($offset, $whence);
+    $size = $this->getSize();
+
+    // Check if the final offset is past EOF.
+    if ($pos > $size) {
+      // Calculate the number of bytes used to pad the stream.
+      $pad_bytes = $pos - $size;
+
+      // Seek to the end of the buffer and pad some NUL bytes to reach $pos.
+      if (\fseek($this->buffer, 0, SEEK_END) !== 0 || \fwrite($this->buffer, str_pad("", $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
+        throw new \RuntimeException();
+      }
+    }
+    elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
+      throw new \RuntimeException();
+    }
+  }
+
+  /**
+   * Magic method to help serialize the object.
+   *
+   * @return string
+   *   The entire contents of the buffer.
+   */
+  public function serialize(): string {
+    $pos = $this->tell();
+    $str = json_encode([
+      'buffer' => (string) $this,
+      'pos' => $pos,
+    ]);
+
+    $this->seek($pos);
+    return $str;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function tell(): int {
+    // Ensure that the buffer is valid before continuing.
+    if (!\is_resource($this->buffer)) {
+      throw new \RuntimeException();
+    }
+
+    return \ftell($this->buffer);
+  }
+
+  /**
+   * Magic method to help unserialize the object.
+   *
+   * @param string $serialized
+   *   The buffer contents.
+   */
+  public function unserialize($serialized): void {
+    $state = json_decode($serialized);
+    $this->__construct($state->buffer);
+    $this->seek($state->pos);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function write($string): int {
+    // Attempt to write to a valid buffer, throw an exception on failure.
+    if (!\is_resource($this->buffer) || ($bytes = \fwrite($this->buffer, $string)) === FALSE) {
+      throw new \RuntimeException();
+    }
+
+    return $bytes;
   }
 
 }
