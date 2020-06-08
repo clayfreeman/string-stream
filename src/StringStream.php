@@ -314,7 +314,7 @@ class StringStream implements \Serializable, StreamInterface {
       $pad_bytes = $pos - $size;
 
       // Seek to the end of the buffer and pad some NUL bytes to reach $pos.
-      if (\fseek($this->buffer, 0, \SEEK_END) !== 0 || \fwrite($this->buffer, \str_pad("", $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
+      if (\fseek($this->buffer, 0, \SEEK_END) !== 0 || \fwrite($this->buffer, \str_pad('', $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
         throw new \RuntimeException();
       }
     }
