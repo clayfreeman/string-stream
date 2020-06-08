@@ -27,7 +27,9 @@ class StringStream implements \Serializable, StreamInterface {
    * Clones the internal state of this object.
    */
   public function __clone() {
+    $pos = $this->tell();
     $this->__construct((string) $this);
+    $this->seek($pos);
   }
 
   /**
@@ -51,16 +53,27 @@ class StringStream implements \Serializable, StreamInterface {
    *   The entire contents of the buffer.
    */
   public function serialize(): string {
-    return (string) $this;
+    $pos = $this->tell();
+    $str = json_encode([
+      'buffer' => (string) $this,
+      'pos' => $pos,
+    ]);
+
+    $this->seek($pos);
+    return $str;
   }
 
   /**
    * {@inheritdoc}
    */
   public function __toString(): string {
-    // Rewind to the beginning of the stream and fetch the remaining contents.
+    $pos = $this->tell();
+
     $this->rewind();
-    return $this->getContents();
+    $str = $this->getContents();
+    $this->seek($pos);
+
+    return $str;
   }
 
   /**
@@ -70,7 +83,9 @@ class StringStream implements \Serializable, StreamInterface {
    *   The buffer contents.
    */
   public function unserialize($serialized): void {
-    $this->__construct($serialized);
+    $state = json_decode($serialized);
+    $this->__construct($state->buffer);
+    $this->seek($state->pos);
   }
 
   /**

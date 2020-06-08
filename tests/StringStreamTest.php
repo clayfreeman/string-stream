@@ -105,7 +105,7 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(FALSE, $stream->eof());
     $this->assertSame($input, (string) $stream);
     $this->assertSame(FALSE, $stream->eof());
-    $this->assertSame('', $stream->read(1));
+    $this->assertSame($input, $stream->read($stream->getSize() + 1));
     $this->assertSame(TRUE, $stream->eof());
 
     $stream->close();
@@ -297,6 +297,10 @@ final class StringStreamTest extends TestCase {
   public function testSerialization(): void {
     $stream = new StringStream($input = 'sample');
     $this->assertSame($input, (string) unserialize(serialize($stream)));
+
+    $stream->seek($pos = intval(strlen($input) / 2));
+    $this->assertSame($pos, $stream->tell());
+    $this->assertSame($pos, unserialize(serialize($stream))->tell());
   }
 
   /**
@@ -314,6 +318,9 @@ final class StringStreamTest extends TestCase {
     $this->assertSame($input, (string) $stream);
 
     $this->assertNotEquals((string) $stream, (string) $stream2);
+
+    $stream2->seek($pos = intval(strlen((string) $stream2) / 2));
+    $this->assertSame($pos, (clone $stream2)->tell());
   }
 
 }
