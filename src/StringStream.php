@@ -140,7 +140,7 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function eof(): bool {
     // Check if we've reached EOF on a valid buffer; FALSE for invalid buffer.
-    // This flag will only be set after a read is attempted while at EOF offset.
+    // This flag will only be set after a read is attempted at EOF.
     return \is_resource($this->buffer) ? \feof($this->buffer) : FALSE;
   }
 
@@ -259,17 +259,17 @@ class StringStream implements \Serializable, StreamInterface {
   }
 
   /**
-   * Peek at the next character while temporarily modifying the stream offset.
+   * Peek at the next byte in the stream.
    *
-   * This method will retrieve the current stream offset and store it. Next, an
-   * attempt is made to read a single character from the stream. Finally, the
-   * stream is reset to its original offset and the character is returned.
+   * This method will retrieve the current stream position and store it. Next,
+   * an attempt is made to read a single byte from the stream. Finally, the
+   * stream is reset to its original position and the character is returned.
    *
    * @throws \RuntimeException
    *   If this method is unable to do any of the following:
-   *     1. Fetch the current stream offset.
+   *     1. Fetch the current stream position.
    *     2. Read a single character.
-   *     3. Seek to the original stream offset.
+   *     3. Seek to the original stream position.
    *
    * @return string
    *   The next character in the string, or an empty string on EOF.
