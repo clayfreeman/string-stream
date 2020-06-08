@@ -77,15 +77,15 @@ class StringStream implements \Serializable, StreamInterface {
 
     // Calculate the final offset into the stream.
     switch ($whence) {
-      case SEEK_CUR:
+      case \SEEK_CUR:
         $pos += $offset;
         break;
 
-      case SEEK_END:
+      case \SEEK_END:
         $pos = $this->getSize() + $offset;
         break;
 
-      case SEEK_SET:
+      case \SEEK_SET:
         $pos = $offset;
         break;
     }
@@ -191,7 +191,7 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function ignore(int $length = 0, string $delim = ''): void {
     // Check if the request should use non-delimited functionality.
-    if ($length <= 0 || strlen($delim) === 0) {
+    if ($length <= 0 || \strlen($delim) === 0) {
       // Defer the request to ::getContents().
       $this->getContents($length, $delim);
     }
@@ -282,13 +282,13 @@ class StringStream implements \Serializable, StreamInterface {
   protected function readDelimited(int $length, string $delim, bool $discard): string {
     $pos = $this->tell();
     // Read up to $length characters, or until $delim is found.
-    if (($result = stream_get_line($this->buffer, $length, $delim)) === FALSE) {
+    if (($result = \stream_get_line($this->buffer, $length, $delim)) === FALSE) {
       $result = '';
     }
 
     // Check whether the delimiter shouldn't be discarded.
     if (!$discard) {
-      $this->seek($pos + strlen($result));
+      $this->seek($pos + \strlen($result));
     }
 
     return $result;
@@ -304,7 +304,7 @@ class StringStream implements \Serializable, StreamInterface {
   /**
    * {@inheritdoc}
    */
-  public function seek($offset, $whence = SEEK_SET): void {
+  public function seek($offset, $whence = \SEEK_SET): void {
     $pos = $this->calculateSeekPosition($offset, $whence);
     $size = $this->getSize();
 
@@ -314,7 +314,7 @@ class StringStream implements \Serializable, StreamInterface {
       $pad_bytes = $pos - $size;
 
       // Seek to the end of the buffer and pad some NUL bytes to reach $pos.
-      if (\fseek($this->buffer, 0, SEEK_END) !== 0 || \fwrite($this->buffer, str_pad("", $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
+      if (\fseek($this->buffer, 0, \SEEK_END) !== 0 || \fwrite($this->buffer, \str_pad("", $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
         throw new \RuntimeException();
       }
     }
