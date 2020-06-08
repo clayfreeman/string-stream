@@ -2,12 +2,14 @@
 
 declare(strict_types = 1);
 
-use ClayFreeman\StringStream;
+use ClayFreeman\Stream\StringStream;
 
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \ClayFreeman\StringStream
+ * @covers \ClayFreeman\Stream\CloneableStreamTrait
+ * @covers \ClayFreeman\Stream\SerializableStreamTrait
+ * @covers \ClayFreeman\Stream\StringStream
  *
  * @license http://mozilla.org/MPL/2.0/ MPL-2.0
  * This file is subject to the terms of the Mozilla Public License, v2.0. If a
@@ -17,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 final class StringStreamTest extends TestCase {
 
   /**
-   * @covers \ClayFreeman\StringStream::__construct()
+   * @covers \ClayFreeman\Stream\StringStream::__construct()
    */
   public function testConstruct(): void {
     $stream = new StringStream($input = 'sample');
@@ -36,7 +38,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::__toString()
+   * @covers \ClayFreeman\Stream\StringStream::__toString()
    */
   public function testToString(): void {
     $stream = new StringStream($input = 'sample');
@@ -48,7 +50,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::close()
+   * @covers \ClayFreeman\Stream\StringStream::close()
    */
   public function testClose(): void {
     $stream = new StringStream($input = 'sample');
@@ -59,7 +61,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::detach()
+   * @covers \ClayFreeman\Stream\StringStream::detach()
    */
   public function testDetach(): void {
     $stream = new StringStream($input = 'sample');
@@ -71,7 +73,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::getSize()
+   * @covers \ClayFreeman\Stream\StringStream::getSize()
    */
   public function testGetSize(): void {
     $stream = new StringStream($input = 'sample');
@@ -82,7 +84,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::tell()
+   * @covers \ClayFreeman\Stream\StringStream::tell()
    */
   public function testTell(): void {
     $stream = new StringStream($input = 'sample');
@@ -97,7 +99,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::eof()
+   * @covers \ClayFreeman\Stream\StringStream::eof()
    */
   public function testEof(): void {
     $stream = new StringStream($input = 'sample');
@@ -113,7 +115,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::seek()
+   * @covers \ClayFreeman\Stream\StringStream::seek()
    */
   public function testSeek(): void {
     $stream = new StringStream($input = 'sample');
@@ -141,7 +143,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::rewind()
+   * @covers \ClayFreeman\Stream\StringStream::rewind()
    */
   public function testRewind(): void {
     $stream = new StringStream($input = 'sample');
@@ -154,7 +156,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::write()
+   * @covers \ClayFreeman\Stream\StringStream::write()
    */
   public function testWrite(): void {
     $stream = new StringStream($input = 'sample');
@@ -175,7 +177,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::read()
+   * @covers \ClayFreeman\Stream\StringStream::read()
    */
   public function testRead(): void {
     $stream = new StringStream($input = 'sample');
@@ -192,7 +194,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::peek()
+   * @covers \ClayFreeman\Stream\StringStream::peek()
    */
   public function testPeek(): void {
     $offset = 0;
@@ -214,7 +216,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::getContents()
+   * @covers \ClayFreeman\Stream\StringStream::getContents()
    */
   public function testGetContents(): void {
     $stream = new StringStream($input = 'sample');
@@ -247,7 +249,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::ignore()
+   * @covers \ClayFreeman\Stream\StringStream::ignore()
    */
   public function testIgnore(): void {
     $stream = new StringStream($input = 'sample');
@@ -269,7 +271,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::getContents()
+   * @covers \ClayFreeman\Stream\StringStream::getContents()
    */
   public function testGetMetadata(): void {
     $stream = new StringStream($input = 'sample');
@@ -279,9 +281,9 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::isReadable()
-   * @covers \ClayFreeman\StringStream::isSeekable()
-   * @covers \ClayFreeman\StringStream::isWritable()
+   * @covers \ClayFreeman\Stream\StringStream::isReadable()
+   * @covers \ClayFreeman\Stream\StringStream::isSeekable()
+   * @covers \ClayFreeman\Stream\StringStream::isWritable()
    */
   public function testFeatureFlags(): void {
     $stream = new StringStream($input = 'sample');
@@ -291,8 +293,8 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::serialize()
-   * @covers \ClayFreeman\StringStream::unserialize()
+   * @covers \ClayFreeman\Stream\StringStream::serialize()
+   * @covers \ClayFreeman\Stream\StringStream::unserialize()
    */
   public function testSerialization(): void {
     $stream = new StringStream($input = 'sample');
@@ -304,7 +306,7 @@ final class StringStreamTest extends TestCase {
   }
 
   /**
-   * @covers \ClayFreeman\StringStream::__clone()
+   * @covers \ClayFreeman\Stream\StringStream::__clone()
    */
   public function testClone(): void {
     $stream = new StringStream($input = 'sample');

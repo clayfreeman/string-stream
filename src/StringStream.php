@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace ClayFreeman;
+namespace ClayFreeman\Stream;
 
 use Psr\Http\Message\StreamInterface;
 
@@ -16,21 +16,15 @@ use Psr\Http\Message\StreamInterface;
  */
 class StringStream implements \Serializable, StreamInterface {
 
+  use CloneableStreamTrait;
+  use SerializableStreamTrait;
+
   /**
    * The internal memory buffer.
    *
    * @var resource|null
    */
   protected $buffer = NULL;
-
-  /**
-   * Clones the internal state of this object.
-   */
-  public function __clone() {
-    $pos = $this->tell();
-    $this->__construct((string) $this);
-    $this->seek($pos);
-  }
 
   /**
    * Constructs a StringStream object.
@@ -330,23 +324,6 @@ class StringStream implements \Serializable, StreamInterface {
   }
 
   /**
-   * Magic method to help serialize the object.
-   *
-   * @return string
-   *   The entire contents of the buffer.
-   */
-  public function serialize(): string {
-    $pos = $this->tell();
-    $str = json_encode([
-      'buffer' => (string) $this,
-      'pos' => $pos,
-    ]);
-
-    $this->seek($pos);
-    return $str;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function tell(): int {
@@ -356,18 +333,6 @@ class StringStream implements \Serializable, StreamInterface {
     }
 
     return \ftell($this->buffer);
-  }
-
-  /**
-   * Magic method to help unserialize the object.
-   *
-   * @param string $serialized
-   *   The buffer contents.
-   */
-  public function unserialize($serialized): void {
-    $state = json_decode($serialized);
-    $this->__construct($state->buffer);
-    $this->seek($state->pos);
   }
 
   /**
