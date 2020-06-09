@@ -28,10 +28,15 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(0, $stream->tell());
 
     $this->assertIsResource($fh = $stream->detach());
-    $this->assertSame(0, ftell($fh));
+    if (\is_resource($fh)) {
+      $this->assertSame(0, \ftell($fh));
 
-    $this->assertSame(strlen($input), fstat($fh)['size']);
-    $this->assertSame($input, fread($fh, strlen($input)));
+      if (($info = \fstat($fh)) !== FALSE) {
+        $this->assertSame(\strlen($input), $info['size']);
+      }
+
+      $this->assertSame($input, \fread($fh, \strlen($input)));
+    }
 
     $this->expectException(\RuntimeException::class);
     $stream->tell();
@@ -77,7 +82,7 @@ final class StringStreamTest extends TestCase {
    */
   public function testGetSize(): void {
     $stream = new StringStream($input = 'sample');
-    $this->assertSame(strlen($input), $stream->getSize());
+    $this->assertSame(\strlen($input), $stream->getSize());
 
     $stream->close();
     $this->assertNull($stream->getSize());
@@ -90,7 +95,7 @@ final class StringStreamTest extends TestCase {
     $stream = new StringStream($input = 'sample');
 
     $this->assertSame(0, $stream->tell());
-    $this->assertSame(substr($input, 0, $length = 3), $stream->read($length));
+    $this->assertSame(\substr($input, 0, $length = 3), $stream->read($length));
     $this->assertSame($length, $stream->tell());
 
     $stream->close();
@@ -132,7 +137,7 @@ final class StringStreamTest extends TestCase {
     $stream->seek($offset4 = $stream->getSize() + 100, SEEK_SET);
     $this->assertSame($offset4, $stream->getSize());
     $this->assertSame($offset4, $stream->tell());
-    $this->assertSame(str_pad($input, $offset4, "\0"), (string) $stream);
+    $this->assertSame(\str_pad($input, $offset4, "\0"), (string) $stream);
 
     $this->expectException(\RuntimeException::class);
     $stream->seek($offset5 = -2, SEEK_SET);
@@ -169,7 +174,7 @@ final class StringStreamTest extends TestCase {
 
     $stream->seek(0);
     $stream->write($tmp = 'junk');
-    $this->assertSame($tmp . substr($input . $input, strlen($tmp)), (string) $stream);
+    $this->assertSame($tmp . \substr($input . $input, \strlen($tmp)), (string) $stream);
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
@@ -181,12 +186,12 @@ final class StringStreamTest extends TestCase {
    */
   public function testRead(): void {
     $stream = new StringStream($input = 'sample');
-    $this->assertSame($input, $stream->read(strlen($input)));
-    $this->assertSame('', $stream->read(strlen($input)));
+    $this->assertSame($input, $stream->read(\strlen($input)));
+    $this->assertSame('', $stream->read(\strlen($input)));
 
     $stream->seek(1);
-    $this->assertSame(substr($input, 1), $stream->read(strlen($input)));
-    $this->assertSame('', $stream->read(strlen($input)));
+    $this->assertSame(\substr($input, 1), $stream->read(\strlen($input)));
+    $this->assertSame('', $stream->read(\strlen($input)));
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
@@ -200,13 +205,13 @@ final class StringStreamTest extends TestCase {
     $offset = 0;
     $stream = new StringStream($input = 'sample');
 
-    $this->assertSame(substr($input, $offset, 1), $stream->peek());
+    $this->assertSame(\substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
-    $this->assertSame(substr($input, $offset, 1), $stream->peek());
+    $this->assertSame(\substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
-    $this->assertSame(substr($input, $offset, 1), $chr = $stream->read(1)); $offset += strlen($chr);
+    $this->assertSame(\substr($input, $offset, 1), $chr = $stream->read(1)); $offset += \strlen($chr);
     $this->assertSame($offset, $stream->tell());
-    $this->assertSame(substr($input, $offset, 1), $stream->peek());
+    $this->assertSame(\substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
 
     $stream->getContents();
@@ -224,28 +229,28 @@ final class StringStreamTest extends TestCase {
     $this->assertSame('', $stream->getContents());
 
     $stream->seek(-3, SEEK_END);
-    $this->assertSame(substr($input, -3), $stream->getContents());
+    $this->assertSame(\substr($input, -3), $stream->getContents());
 
     $stream->rewind();
-    $this->assertSame($expected = 'sam', $stream->getContents($stream->getSize(), 'p'));
-    $this->assertSame(strlen($expected), $stream->tell());
+    $this->assertSame($expected = 'sam', $stream->getContents(\strlen($input), 'p'));
+    $this->assertSame(\strlen($expected), $stream->tell());
     $stream->rewind();
     $this->assertSame($expected = 's', $stream->getContents(1, 'p'));
-    $this->assertSame(strlen($expected), $stream->tell());
+    $this->assertSame(\strlen($expected), $stream->tell());
     $stream->rewind();
-    $this->assertSame($expected = 'sample', $stream->getContents($stream->getSize(), 'z'));
-    $this->assertSame(strlen($expected), $stream->tell());
-    $this->assertSame($expected = '', $stream->getContents($stream->getSize(), 'z'));
-    $this->assertSame($stream->getSize(), $stream->tell());
+    $this->assertSame($expected = 'sample', $stream->getContents(\strlen($input), 'z'));
+    $this->assertSame(\strlen($expected), $stream->tell());
+    $this->assertSame($expected = '', $stream->getContents(\strlen($input), 'z'));
+    $this->assertSame(\strlen($input), $stream->tell());
     $stream->rewind();
-    $this->assertSame($expected = 'sample', $stream->getContents($stream->getSize()));
-    $this->assertSame(strlen($expected), $stream->tell());
+    $this->assertSame($expected = 'sample', $stream->getContents(\strlen($input)));
+    $this->assertSame(\strlen($expected), $stream->tell());
     $stream->rewind();
     $this->assertSame($expected = 'sample', $stream->getContents());
-    $this->assertSame(strlen($expected), $stream->tell());
+    $this->assertSame(\strlen($expected), $stream->tell());
     $stream->rewind();
     $this->assertSame($expected = 'sample', $stream->getContents(-1));
-    $this->assertSame(strlen($expected), $stream->tell());
+    $this->assertSame(\strlen($expected), $stream->tell());
   }
 
   /**
@@ -255,7 +260,7 @@ final class StringStreamTest extends TestCase {
     $stream = new StringStream($input = 'sample');
 
     $stream->ignore();
-    $this->assertSame(strlen($input), $stream->tell());
+    $this->assertSame(\strlen($input), $stream->tell());
 
     $stream->rewind();
     $stream->ignore($max = 3);
@@ -263,11 +268,11 @@ final class StringStreamTest extends TestCase {
 
     $stream->rewind();
     $stream->ignore(0, 'p');
-    $this->assertSame(strlen($input), $stream->tell());
+    $this->assertSame(\strlen($input), $stream->tell());
 
     $stream->rewind();
-    $stream->ignore($max = strlen($input), $delim = 'p');
-    $this->assertSame(strpos($input, $delim) + strlen($delim), $stream->tell());
+    $stream->ignore($max = \strlen($input), $delim = 'p');
+    $this->assertSame(\strpos($input, $delim) + \strlen($delim), $stream->tell());
   }
 
   /**
@@ -298,11 +303,11 @@ final class StringStreamTest extends TestCase {
    */
   public function testSerialization(): void {
     $stream = new StringStream($input = 'sample');
-    $this->assertSame($input, (string) unserialize(serialize($stream)));
+    $this->assertSame($input, (string) \unserialize(\serialize($stream)));
 
-    $stream->seek($pos = intval(strlen($input) / 2));
+    $stream->seek($pos = \intval(\strlen($input) / 2));
     $this->assertSame($pos, $stream->tell());
-    $this->assertSame($pos, unserialize(serialize($stream))->tell());
+    $this->assertSame($pos, \unserialize(\serialize($stream))->tell());
   }
 
   /**
@@ -316,12 +321,12 @@ final class StringStreamTest extends TestCase {
 
     $stream2->rewind();
     $stream2->write($write = 'junk');
-    $this->assertSame($write . substr($input, strlen($write)), (string) $stream2);
+    $this->assertSame($write . \substr($input, \strlen($write)), (string) $stream2);
     $this->assertSame($input, (string) $stream);
 
     $this->assertNotEquals((string) $stream, (string) $stream2);
 
-    $stream2->seek($pos = intval(strlen((string) $stream2) / 2));
+    $stream2->seek($pos = \intval(\strlen((string) $stream2) / 2));
     $this->assertSame($pos, (clone $stream2)->tell());
   }
 

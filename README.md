@@ -1,4 +1,5 @@
 ![PHPUnit](https://github.com/clayfreeman/string-stream/workflows/PHPUnit/badge.svg)
+![PHPStan](https://github.com/clayfreeman/string-stream/workflows/PHPStan/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1f8b86e65ff9b355b894/maintainability)](https://codeclimate.com/github/clayfreeman/string-stream/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/1f8b86e65ff9b355b894/test_coverage)](https://codeclimate.com/github/clayfreeman/string-stream/test_coverage)
 

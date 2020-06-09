@@ -1,8 +1,8 @@
 name: 'PHPUnit'
 on: [push]
 jobs:
-  tests:
-    name: Tests
+  phpunit:
+    name: 'PHPUnit'
     runs-on: ubuntu-latest
     steps:
       - name: 'Install system dependencies'

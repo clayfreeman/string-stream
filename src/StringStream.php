@@ -34,10 +34,13 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function __construct(string $input = '') {
     // Create an internal memory buffer used to store the stream.
-    $this->buffer = \fopen('php://memory', 'w+');
-    // Write the supplied input to the stream and rewind back to the beginning.
-    $this->write($input);
-    $this->rewind();
+    if (($buffer = \fopen('php://memory', 'w+')) !== FALSE) {
+      $this->buffer = $buffer;
+
+      // Write the supplied input to the buffer and rewind it.
+      $this->write($input);
+      $this->rewind();
+    }
   }
 
   /**
@@ -62,10 +65,10 @@ class StringStream implements \Serializable, StreamInterface {
    *   The desired offset from $whence.
    * @param int $whence
    *   Specifies how the cursor position will be calculated. Valid values are
-   *   identical to the built-in PHP $whence values for `fseek()`:
-   *    - SEEK_CUR: Set position to current location plus offset.
-   *    - SEEK_END: Set position to end-of-stream plus offset.
-   *    - SEEK_SET: Set position equal to offset bytes.
+   *   identical to the built-in PHP $whence values for `\fseek()`:
+   *    - \SEEK_CUR: Set position to current location plus offset.
+   *    - \SEEK_END: Set position to end-of-stream plus offset.
+   *    - \SEEK_SET: Set position equal to offset bytes.
    *
    * @internal
    *
@@ -146,7 +149,7 @@ class StringStream implements \Serializable, StreamInterface {
       }
     }
     // Check if a delimiter was supplied.
-    elseif (strlen($delim) > 0) {
+    elseif (\strlen($delim) > 0) {
       return $this->readDelimited($length, $delim, FALSE);
     }
     else {
@@ -171,8 +174,8 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function getSize(): ?int {
     // Check if the buffer is valid before retrieving its length.
-    if (\is_resource($this->buffer)) {
-      return \fstat($this->buffer)['size'];
+    if (\is_resource($this->buffer) && ($info = \fstat($this->buffer)) !== FALSE) {
+      return $info['size'];
     }
 
     return NULL;
@@ -254,7 +257,7 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function read($length): string {
     // Attempt to read from a valid buffer, throw an exception on failure.
-    if (!is_resource($this->buffer) || ($string = \fread($this->buffer, $length)) === FALSE) {
+    if (!\is_resource($this->buffer) || ($string = \fread($this->buffer, $length)) === FALSE) {
       throw new \RuntimeException();
     }
 
@@ -280,15 +283,20 @@ class StringStream implements \Serializable, StreamInterface {
    *   The bytes read from the stream.
    */
   protected function readDelimited(int $length, string $delim, bool $discard): string {
-    $pos = $this->tell();
-    // Read up to $length characters, or until $delim is found.
-    if (($result = \stream_get_line($this->buffer, $length, $delim)) === FALSE) {
-      $result = '';
-    }
+    $result = '';
 
-    // Check whether the delimiter shouldn't be discarded.
-    if (!$discard) {
-      $this->seek($pos + \strlen($result));
+    if (\is_resource($this->buffer)) {
+      $pos = $this->tell();
+
+      // Read up to $length characters, or until $delim is found.
+      if (($str = \stream_get_line($this->buffer, $length, $delim)) !== FALSE) {
+        $result = $str;
+      }
+
+      // Check whether the delimiter shouldn't be discarded.
+      if (!$discard) {
+        $this->seek($pos + \strlen($result));
+      }
     }
 
     return $result;
@@ -313,12 +321,15 @@ class StringStream implements \Serializable, StreamInterface {
       // Calculate the number of bytes used to pad the stream.
       $pad_bytes = $pos - $size;
 
-      // Seek to the end of the buffer and pad some NUL bytes to reach $pos.
-      if (\fseek($this->buffer, 0, \SEEK_END) !== 0 || \fwrite($this->buffer, \str_pad('', $pad_bytes, "\0"), $pad_bytes) !== $pad_bytes) {
+      // Seek to the end of the buffer to write the padding bytes.
+      if (!\is_resource($this->buffer) || \fseek($this->buffer, 0, \SEEK_END) !== 0) {
         throw new \RuntimeException();
       }
+
+      // Write some NUL bytes to reach $pos.
+      $this->write(\str_pad('', $pad_bytes, "\0"));
     }
-    elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
+    elseif (!\is_resource($this->buffer) || \fseek($this->buffer, $offset, $whence) !== 0) {
       throw new \RuntimeException();
     }
   }
@@ -332,7 +343,14 @@ class StringStream implements \Serializable, StreamInterface {
       throw new \RuntimeException();
     }
 
-    return \ftell($this->buffer);
+    // Fetch the current position of the stream.
+    $pos = \ftell($this->buffer);
+    // Check if the current position couldn't be found.
+    if ($pos === FALSE) {
+      $pos = 0;
+    }
+
+    return $pos;
   }
 
   /**
