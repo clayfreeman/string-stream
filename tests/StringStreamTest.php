@@ -85,7 +85,8 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(\strlen($input), $stream->getSize());
 
     $stream->close();
-    $this->assertNull($stream->getSize());
+    $this->expectException(\RuntimeException::class);
+    $stream->getSize();
   }
 
   /**
@@ -141,10 +142,17 @@ final class StringStreamTest extends TestCase {
 
     $this->expectException(\RuntimeException::class);
     $stream->seek($offset5 = -2, SEEK_SET);
+  }
+
+  /**
+   * @covers \ClayFreeman\Stream\StringStream::seek()
+   */
+  public function testSeekClosed(): void {
+    $stream = new StringStream($input = 'sample');
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
-    $stream->seek($offset6 = 1, SEEK_SET);
+    $stream->rewind();
   }
 
   /**

@@ -24,15 +24,10 @@ trait SerializableStreamTrait {
     // Save the current position of the stream before serializing it.
     $pos = $this->tell();
     // Attempt to serialize the stream's buffer & position using json_encode().
-    $str = json_encode([
+    $str = serialize([
       'buffer' => (string) $this,
       'pos' => $pos,
     ]);
-
-    // Check if a failure occurred when running json_encode().
-    if ($str === FALSE) {
-      $str = '';
-    }
 
     // Restore the previous position to the stream.
     $this->seek($pos);
@@ -46,11 +41,9 @@ trait SerializableStreamTrait {
    *   The buffer contents.
    */
   public function unserialize($serialized): void {
-    if ($serialized !== '') {
-      $state = json_decode($serialized);
-      $this->__construct($state->buffer);
-      $this->seek($state->pos);
-    }
+    $state = unserialize($serialized);
+    $this->__construct($state['buffer']);
+    $this->seek($state['pos']);
   }
 
 }

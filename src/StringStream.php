@@ -61,6 +61,10 @@ class StringStream implements \Serializable, StreamInterface {
    *
    * This method is read-only and DOES NOT modify the stream offset.
    *
+   * @param int $pos
+   *   The current position of the stream.
+   * @param int $size
+   *   The size of the stream.
    * @param int $offset
    *   The desired offset from $whence.
    * @param int $whence
@@ -75,9 +79,7 @@ class StringStream implements \Serializable, StreamInterface {
    * @return int
    *   The theoretical final position resulting from a potential seek operation.
    */
-  protected function calculateSeekPosition(int $offset, int $whence): int {
-    $pos = $this->tell();
-
+  protected function calculateSeekPosition(int $pos, int $size, int $offset, int $whence): int {
     // Calculate the final offset into the stream.
     switch ($whence) {
       case \SEEK_CUR:
@@ -85,7 +87,7 @@ class StringStream implements \Serializable, StreamInterface {
         break;
 
       case \SEEK_END:
-        $pos = $this->getSize() + $offset;
+        $pos = $size + $offset;
         break;
 
       case \SEEK_SET:
@@ -172,13 +174,13 @@ class StringStream implements \Serializable, StreamInterface {
   /**
    * {@inheritdoc}
    */
-  public function getSize(): ?int {
+  public function getSize(): int {
     // Check if the buffer is valid before retrieving its length.
-    if (\is_resource($this->buffer) && ($info = \fstat($this->buffer)) !== FALSE) {
-      return $info['size'];
+    if (!\is_resource($this->buffer) || ($info = \fstat($this->buffer)) === FALSE) {
+      throw new \RuntimeException();
     }
 
-    return NULL;
+    return $info['size'];
   }
 
   /**
@@ -313,24 +315,30 @@ class StringStream implements \Serializable, StreamInterface {
    * {@inheritdoc}
    */
   public function seek($offset, $whence = \SEEK_SET): void {
-    $pos = $this->calculateSeekPosition($offset, $whence);
-    $size = $this->getSize();
-
-    // Check if the final offset is past EOF.
-    if ($pos > $size) {
-      // Calculate the number of bytes used to pad the stream.
-      $pad_bytes = $pos - $size;
-
-      // Seek to the end of the buffer to write the padding bytes.
-      if (!\is_resource($this->buffer) || \fseek($this->buffer, 0, \SEEK_END) !== 0) {
-        throw new \RuntimeException();
-      }
-
-      // Write some NUL bytes to reach $pos.
-      $this->write(\str_pad('', $pad_bytes, "\0"));
-    }
-    elseif (!\is_resource($this->buffer) || \fseek($this->buffer, $offset, $whence) !== 0) {
+    // Ensure that the buffer is valid before continuing.
+    if (!\is_resource($this->buffer)) {
       throw new \RuntimeException();
+    }
+
+    // Calculate the final position of the stream and fetch the stream size.
+    $pos = $this->calculateSeekPosition($this->tell(), $size = $this->getSize(), $offset, $whence);
+    // Calculate the number of bytes needed to pad the stream.
+    $pad_length = $pos > $size ? $pos - $size : 0;
+    $padding = \str_pad('', $pad_length, "\0");
+
+    // Check if padding is required to seek to the requested position.
+    if ($pad_length > 0) {
+      // Seek to the end to write the padding bytes.
+      \fseek($this->buffer, 0, \SEEK_END);
+    }
+    // Padding isn't required; attempt to seek to the requested position.
+    elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
+      throw new \RuntimeException();
+    }
+
+    // Attempt to write the needed padding bytes to the stream (if applicable).
+    if ($pad_length > 0) {
+      $this->write($padding);
     }
   }
 
