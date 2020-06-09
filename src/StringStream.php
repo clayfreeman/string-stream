@@ -328,17 +328,13 @@ class StringStream implements \Serializable, StreamInterface {
 
     // Check if padding is required to seek to the requested position.
     if ($pad_length > 0) {
-      // Seek to the end to write the padding bytes.
+      // Seek to the end and write the padding bytes.
       \fseek($this->buffer, 0, \SEEK_END);
+      $this->write($padding);
     }
     // Padding isn't required; attempt to seek to the requested position.
     elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
       throw new \RuntimeException();
-    }
-
-    // Attempt to write the needed padding bytes to the stream (if applicable).
-    if ($pad_length > 0) {
-      $this->write($padding);
     }
   }
 
