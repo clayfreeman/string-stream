@@ -339,15 +339,8 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function tell(): int {
     // Ensure that the buffer is valid before continuing.
-    if (!\is_resource($this->buffer)) {
+    if (!\is_resource($this->buffer) || ($pos = \ftell($this->buffer)) === FALSE) {
       throw new \RuntimeException();
-    }
-
-    // Fetch the current position of the stream.
-    $pos = \ftell($this->buffer);
-    // Check if the current position couldn't be found.
-    if ($pos === FALSE) {
-      $pos = 0;
     }
 
     return $pos;
