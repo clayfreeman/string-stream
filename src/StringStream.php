@@ -61,10 +61,6 @@ class StringStream implements \Serializable, StreamInterface {
    *
    * This method is read-only and DOES NOT modify the stream offset.
    *
-   * @param int $pos
-   *   The current position of the stream.
-   * @param int $size
-   *   The size of the stream.
    * @param int $offset
    *   The desired offset from $whence.
    * @param int $whence
@@ -79,7 +75,9 @@ class StringStream implements \Serializable, StreamInterface {
    * @return int
    *   The theoretical final position resulting from a potential seek operation.
    */
-  protected function calculateSeekPosition(int $pos, int $size, int $offset, int $whence): int {
+  protected function calculateSeekPosition(int $offset, int $whence): int {
+    $pos = $this->tell();
+
     // Calculate the final offset into the stream.
     switch ($whence) {
       case \SEEK_CUR:
@@ -87,7 +85,7 @@ class StringStream implements \Serializable, StreamInterface {
         break;
 
       case \SEEK_END:
-        $pos = $size + $offset;
+        $pos = $this->getSize() + $offset;
         break;
 
       case \SEEK_SET:
@@ -321,16 +319,14 @@ class StringStream implements \Serializable, StreamInterface {
     }
 
     // Calculate the final position of the stream and fetch the stream size.
-    $pos = $this->calculateSeekPosition($this->tell(), $size = $this->getSize(), $offset, $whence);
-    // Calculate the number of bytes needed to pad the stream.
-    $pad_length = $pos > $size ? $pos - $size : 0;
-    $padding = \str_pad('', $pad_length, "\0");
+    $pos = $this->calculateSeekPosition($offset, $whence);
+    $size = $this->getSize();
 
     // Check if padding is required to seek to the requested position.
-    if ($pad_length > 0) {
+    if ($pos > $size) {
       // Seek to the end and write the padding bytes.
       \fseek($this->buffer, 0, \SEEK_END);
-      $this->write($padding);
+      $this->write(\str_pad('', $pos - $size, "\0"));
     }
     // Padding isn't required; attempt to seek to the requested position.
     elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
