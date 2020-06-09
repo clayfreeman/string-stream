@@ -1,8 +1,8 @@
-name: 'PHPUnit'
+name: 'Testing'
 on: [push]
 jobs:
-  phpunit:
-    name: 'PHPUnit'
+  testing:
+    name: 'Testing'
     runs-on: ubuntu-latest
     steps:
       - name: 'Install system dependencies'
@@ -18,3 +18,5 @@ jobs:
         with:
           coverageCommand: './vendor/bin/phpunit'
           coverageLocations: clover.xml:clover
+      - name: 'Run PHPStan tests'
+        run: './vendor/bin/phpstan analyze --level=8 src tests'
