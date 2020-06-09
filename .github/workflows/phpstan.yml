@@ -1,8 +1,8 @@
-name: 'PHPStan | L8'
+name: 'PHPStan'
 on: [push]
 jobs:
   phpstan:
-    name: 'PHPStan | L8'
+    name: 'PHPStan'
     runs-on: ubuntu-latest
     steps:
       - name: 'Install system dependencies'
