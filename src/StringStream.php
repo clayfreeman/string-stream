@@ -172,7 +172,7 @@ class StringStream implements \Serializable, StreamInterface {
     }
 
     // If there's a numeric size available, return it.
-    if (\array_key_exists('size', $info) && \is_numeric($info['size'])) {
+    if (\is_array($info) && \array_key_exists('size', $info) && \is_numeric($info['size'])) {
       return (int) $info['size'];
     }
 
@@ -263,7 +263,7 @@ class StringStream implements \Serializable, StreamInterface {
    * @internal
    */
   protected function realSeek(int $offset, int $whence): void {
-    if (\fseek($this->buffer, $offset, $whence) !== 0) {
+    if (!\is_resource($this->buffer) || \fseek($this->buffer, $offset, $whence) !== 0) {
       throw new \RuntimeException();
     }
   }
