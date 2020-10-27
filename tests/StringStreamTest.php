@@ -242,6 +242,10 @@ final class StringStreamTest extends TestCase {
     $this->assertSame($expected = 'sample', $stream->getContents());
     $this->assertSame(\strlen($expected), $stream->tell());
     $this->assertSame('', $stream->getContents());
+
+    $stream->close();
+    $this->expectException(\RuntimeException::class);
+    $stream->getContents();
   }
 
   /**

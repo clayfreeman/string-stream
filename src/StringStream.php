@@ -61,6 +61,10 @@ class StringStream implements \Serializable, StreamInterface {
    *
    * This method is read-only and DOES NOT modify the stream offset.
    *
+   * @param int $size
+   *   The current size of the buffer.
+   * @param int $pos
+   *   The current position of the buffer.
    * @param int $offset
    *   The desired offset from $whence.
    * @param int $whence
@@ -70,17 +74,12 @@ class StringStream implements \Serializable, StreamInterface {
    *    - \SEEK_END: Set position to end-of-stream plus offset.
    *    - \SEEK_SET: Set position equal to offset bytes.
    *
-   * @throws \RuntimeException
-   *   When the current size of the stream cannot be determined.
-   *
    * @internal
    *
    * @return int
    *   The theoretical final position resulting from a potential seek operation.
    */
-  protected function calculateSeekPosition(int $offset, int $whence): int {
-    $pos = $this->tell();
-
+  protected function calculateSeekPosition(int $size, int $pos, int $offset, int $whence): int {
     // Calculate the final offset into the stream.
     switch ($whence) {
       case \SEEK_CUR:
@@ -88,10 +87,6 @@ class StringStream implements \Serializable, StreamInterface {
         break;
 
       case \SEEK_END:
-        if (($size = $this->getSize()) === NULL) {
-          throw new \RuntimeException();
-        }
-
         $pos = $size + $offset;
         break;
 
@@ -250,9 +245,13 @@ class StringStream implements \Serializable, StreamInterface {
    * Perform a direct seek on the internal buffer using `\fseek()`.
    *
    * @param int $offset
-   *   The offset value to use when seeking.
+   *   The desired offset from $whence.
    * @param int $whence
-   *   One of \SEEK_CUR, \SEEK_END, \SEEK_SET.
+   *   Specifies how the cursor position will be calculated. Valid values are
+   *   identical to the built-in PHP $whence values for `\fseek()`:
+   *    - \SEEK_CUR: Set position to current location plus offset.
+   *    - \SEEK_END: Set position to end-of-stream plus offset.
+   *    - \SEEK_SET: Set position equal to offset bytes.
    *
    * @see \fseek()
    *   For more information on the values for $whence.
@@ -278,7 +277,7 @@ class StringStream implements \Serializable, StreamInterface {
     }
 
     // Calculate the final position of the stream and fetch the stream size.
-    $pos = $this->calculateSeekPosition($offset, $whence);
+    $pos = $this->calculateSeekPosition($size, $this->tell(), $offset, $whence);
 
     // Check if padding is required to seek to the requested position.
     if ($pos > $size) {
