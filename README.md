@@ -29,7 +29,7 @@ Some general usage examples are shown below. For more detailed information,
 please refer to the [PSR-7 stream interface].
 
 ```php
-use ClayFreeman\Stream\StringStream;
+use ClayFreeman\StringStream\StringStream;
 
 $stream = new StringStream('sample string');
 var_export((string) $stream); // 'sample string'

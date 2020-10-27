@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "ClayFreeman\\Stream\\": "src/"
+            "ClayFreeman\\StringStream\\": "src/"
         }
     },
     "config": {

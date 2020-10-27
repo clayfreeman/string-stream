@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace ClayFreeman\Stream;
+namespace ClayFreeman\StringStream;
 
 /**
  * Provides a trait to enable serialization for PSR-7 streams.
@@ -15,33 +15,31 @@ namespace ClayFreeman\Stream;
 trait SerializableStreamTrait {
 
   /**
-   * Magic method to help serialize the object.
+   * Magic method to serialize the object.
    *
    * @return string
    *   The entire contents of the buffer.
    */
   public function serialize(): string {
-    // Save the current position of the stream before serializing it.
-    $pos = $this->tell();
-    // Attempt to serialize the stream's buffer & position using json_encode().
-    $str = serialize([
+    // Capture the internal resource's buffer content and seek position so that
+    // its state can be restored.
+    return \serialize([
       'buffer' => (string) $this,
-      'pos' => $pos,
+      'pos' => $this->tell(),
     ]);
-
-    // Restore the previous position to the stream.
-    $this->seek($pos);
-    return $str;
   }
 
   /**
-   * Magic method to help unserialize the object.
+   * Magic method to unserialize the object.
    *
    * @param string $serialized
    *   The buffer contents.
    */
   public function unserialize($serialized): void {
-    $state = unserialize($serialized);
+    // Unserialize the supplied data for use in restoring the resource state.
+    $state = \unserialize($serialized);
+
+    // Create a new resource with the supplied buffer content and seek position.
     $this->__construct($state['buffer']);
     $this->seek($state['pos']);
   }

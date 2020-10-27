@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace ClayFreeman\Stream;
+namespace ClayFreeman\StringStream;
 
 use Psr\Http\Message\StreamInterface;
 
@@ -70,6 +70,9 @@ class StringStream implements \Serializable, StreamInterface {
    *    - \SEEK_END: Set position to end-of-stream plus offset.
    *    - \SEEK_SET: Set position equal to offset bytes.
    *
+   * @throws \RuntimeException
+   *   When the current size of the stream cannot be determined.
+   *
    * @internal
    *
    * @return int
@@ -85,7 +88,11 @@ class StringStream implements \Serializable, StreamInterface {
         break;
 
       case \SEEK_END:
-        $pos = $this->getSize() + $offset;
+        if (($size = $this->getSize()) === NULL) {
+          throw new \RuntimeException();
+        }
+
+        $pos = $size + $offset;
         break;
 
       case \SEEK_SET:
@@ -130,33 +137,17 @@ class StringStream implements \Serializable, StreamInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @param int $length
-   *   The maximum length of bytes to read (default: 0; all remaining bytes).
-   * @param string $delim
-   *   Stop reading at the supplied delimiter. Only used if $length is positive.
    */
-  public function getContents(int $length = 0, string $delim = ''): string {
-    // Check if the user wants all remaining bytes in the stream.
-    if ($length <= 0) {
-      // Determine the number of remaining bytes in the stream.
-      $length = $this->getSize() - $this->tell();
-
-      // Ensure that there are bytes to read before continuing.
-      if ($length > 0) {
-        // Attempt to read and return the remainder of the buffer.
-        return $this->read($length);
-      }
-    }
-    // Check if a delimiter was supplied.
-    elseif (\strlen($delim) > 0) {
-      return $this->readDelimited($length, $delim, FALSE);
-    }
-    else {
-      return $this->read($length);
+  public function getContents(): string {
+    if (($size = $this->getSize()) === NULL) {
+      throw new \RuntimeException();
     }
 
-    // By default, return an empty string. This point should never be reached.
+    // Attempt to read and return the remainder of the buffer.
+    if ($size > ($pos = $this->tell())) {
+      return $this->read($size - $pos);
+    }
+
     return '';
   }
 
@@ -172,36 +163,20 @@ class StringStream implements \Serializable, StreamInterface {
   /**
    * {@inheritdoc}
    */
-  public function getSize(): int {
-    // Check if the buffer is valid before retrieving its length.
-    if (!\is_resource($this->buffer) || ($info = \fstat($this->buffer)) === FALSE) {
-      throw new \RuntimeException();
+  public function getSize(): ?int {
+    $info = [];
+
+    // Check if the buffer is valid before checking its statistics.
+    if (\is_resource($this->buffer)) {
+      $info = \fstat($this->buffer);
     }
 
-    return $info['size'];
-  }
+    // If there's a numeric size available, return it.
+    if (\array_key_exists('size', $info) && \is_numeric($info['size'])) {
+      return (int) $info['size'];
+    }
 
-  /**
-   * Read & throw away bytes using ::getContents().
-   *
-   * @param int $length
-   *   The maximum length of bytes to read (default: 0; all remaining bytes).
-   * @param string $delim
-   *   Stop reading at the supplied delimiter. Only used if $length is positive.
-   *
-   * @see ::getContents()
-   *   For more information about how this method works.
-   */
-  public function ignore(int $length = 0, string $delim = ''): void {
-    // Check if the request should use non-delimited functionality.
-    if ($length <= 0 || \strlen($delim) === 0) {
-      // Defer the request to ::getContents().
-      $this->getContents($length, $delim);
-    }
-    else {
-      // Attempt to discard a delimited string (including delimiter).
-      $this->readDelimited($length, $delim, TRUE);
-    }
+    return NULL;
   }
 
   /**
@@ -265,44 +240,6 @@ class StringStream implements \Serializable, StreamInterface {
   }
 
   /**
-   * Read up to N bytes or until the supplied delimiter is found.
-   *
-   * @param int $length
-   *   The maximum length of bytes to read. It is the responsibility of the
-   *   caller to ensure that this value is greater than zero.
-   * @param string $delim
-   *   Stop reading at the supplied delimiter. It is the responsibility of the
-   *   caller to ensure that this value has a length greater than zero.
-   * @param bool $discard
-   *   Whether the stream should seek past the supplied delimiter (TRUE) or stop
-   *   ahead of it (FALSE).
-   *
-   * @internal
-   *
-   * @return string
-   *   The bytes read from the stream.
-   */
-  protected function readDelimited(int $length, string $delim, bool $discard): string {
-    $result = '';
-
-    if (\is_resource($this->buffer)) {
-      $pos = $this->tell();
-
-      // Read up to $length characters, or until $delim is found.
-      if (($str = \stream_get_line($this->buffer, $length, $delim)) !== FALSE) {
-        $result = $str;
-      }
-
-      // Check whether the delimiter shouldn't be discarded.
-      if (!$discard) {
-        $this->seek($pos + \strlen($result));
-      }
-    }
-
-    return $result;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function rewind(): void {
@@ -310,27 +247,51 @@ class StringStream implements \Serializable, StreamInterface {
   }
 
   /**
+   * Perform a direct seek on the internal buffer using `\fseek()`.
+   *
+   * @param int $offset
+   *   The offset value to use when seeking.
+   * @param int $whence
+   *   One of \SEEK_CUR, \SEEK_END, \SEEK_SET.
+   *
+   * @see \fseek()
+   *   For more information on the values for $whence.
+   *
+   * @throws \RuntimeException
+   *   If the seek operation fails.
+   *
+   * @internal
+   */
+  protected function realSeek(int $offset, int $whence): void {
+    if (\fseek($this->buffer, $offset, $whence) !== 0) {
+      throw new \RuntimeException();
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function seek($offset, $whence = \SEEK_SET): void {
     // Ensure that the buffer is valid before continuing.
-    if (!\is_resource($this->buffer)) {
+    if (!\is_resource($this->buffer) || ($size = $this->getSize()) === NULL) {
       throw new \RuntimeException();
     }
 
     // Calculate the final position of the stream and fetch the stream size.
     $pos = $this->calculateSeekPosition($offset, $whence);
-    $size = $this->getSize();
 
     // Check if padding is required to seek to the requested position.
     if ($pos > $size) {
+      // Calculate the number of bytes needed to pad the end of the buffer.
+      $remaining = $pos - $size;
+
       // Seek to the end and write the padding bytes.
-      \fseek($this->buffer, 0, \SEEK_END);
-      $this->write(\str_pad('', $pos - $size, "\0"));
+      $this->realSeek(0, \SEEK_END);
+      $this->write(\str_pad('', $remaining, "\0"));
     }
-    // Padding isn't required; attempt to seek to the requested position.
-    elseif (\fseek($this->buffer, $offset, $whence) !== 0) {
-      throw new \RuntimeException();
+    else {
+      // Padding isn't required; attempt to seek to the requested position.
+      $this->realSeek($offset, $whence);
     }
   }
 
