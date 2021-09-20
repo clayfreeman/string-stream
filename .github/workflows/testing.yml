@@ -7,8 +7,10 @@ jobs:
     env:
       XDEBUG_MODE: coverage
     steps:
+      - name: 'Add ppa:ondrej/php repository'
+        run: 'sudo apt-add-repository -y ppa:ondrej/php'
       - name: 'Install system dependencies'
-        run: 'sudo apt install -y composer php php-xdebug'
+        run: 'sudo apt install -y composer php7.4-cli php7.4-xdebug'
       - name: 'Enable Xdebug extension for PHP'
         run: 'sudo phpenmod xdebug'
       - name: 'Print enabled PHP extensions'
