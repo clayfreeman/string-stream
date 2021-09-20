@@ -10,7 +10,7 @@ jobs:
       - name: 'Install system dependencies'
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: 'sudo apt-get install -qq composer php7.4-cli php7.4-xdebug'
+        run: 'sudo apt-get -qq install composer php7.4-cli php7.4-xdebug'
       - name: 'Enable Xdebug extension for PHP'
         run: 'sudo phpenmod xdebug'
       - name: 'Print enabled PHP extensions'
