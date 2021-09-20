@@ -10,7 +10,7 @@ jobs:
       - name: 'Checkout source code'
         uses: actions/checkout@v2
       - name: 'Install Composer dependencies'
-        run: 'composer install --no-interaction'
+        run: 'composer install --no-interaction --no-progress'
       - name: 'Run PHPUnit tests'
         uses: paambaati/codeclimate-action@v2.6.0
         env:
