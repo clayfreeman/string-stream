@@ -270,6 +270,8 @@ final class StringStreamTest extends TestCase {
   /**
    * @covers \ClayFreeman\StringStream\StringStream::__serialize()
    * @covers \ClayFreeman\StringStream\StringStream::__unserialize()
+   * @covers \ClayFreeman\StringStream\StringStream::serialize()
+   * @covers \ClayFreeman\StringStream\StringStream::unserialize()
    */
   public function testSerialization(): void {
     $stream = new StringStream($input = 'sample');
@@ -278,6 +280,15 @@ final class StringStreamTest extends TestCase {
     $stream->seek($pos = \intval(\strlen($input) / 2));
     $this->assertSame($pos, $stream->tell());
     $this->assertSame($pos, \unserialize(\serialize($stream))->tell());
+
+    $stream = new StringStream($input = 'sample');
+    $stream->unserialize($stream->serialize());
+    $this->assertSame($input, (string) $stream);
+
+    $stream->seek($pos = \intval(\strlen($input) / 2));
+    $this->assertSame($pos, $stream->tell());
+    $stream->unserialize($stream->serialize());
+    $this->assertSame($pos, $stream->tell());
   }
 
   /**
