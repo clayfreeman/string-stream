@@ -17,7 +17,7 @@ trait SerializableStreamTrait {
   /**
    * Magic method to serialize the object.
    *
-   * @return array
+   * @return mixed[]
    *   An array representation of this object at the time of serialization.
    *
    * @internal
@@ -32,7 +32,7 @@ trait SerializableStreamTrait {
   /**
    * Magic method to unserialize the object.
    *
-   * @param array $data
+   * @param mixed[] $data
    *   An array representation of this object at the time of serialization.
    *
    * @internal
