@@ -4,12 +4,12 @@ jobs:
   testing:
     name: 'Testing'
     runs-on: ubuntu-latest
-    env:
-      XDEBUG_MODE: coverage
     steps:
       - name: 'Add ppa:ondrej/php repository'
         run: 'sudo apt-add-repository -y ppa:ondrej/php'
       - name: 'Install system dependencies'
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: 'sudo apt-get install -qq composer php7.4-cli php7.4-xdebug'
       - name: 'Enable Xdebug extension for PHP'
         run: 'sudo phpenmod xdebug'
@@ -23,6 +23,7 @@ jobs:
         uses: paambaati/codeclimate-action@v2.7.5
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          XDEBUG_MODE: coverage
         with:
           coverageCommand: './vendor/bin/phpunit'
           coverageLocations: clover.xml:clover
