@@ -9,6 +9,10 @@ jobs:
     steps:
       - name: 'Install system dependencies'
         run: 'sudo apt install -y composer php php-xdebug'
+      - name: 'Enable Xdebug extension for PHP'
+        run: 'sudo phpenmod xdebug'
+      - name: 'Print enabled PHP extensions'
+        run: 'php -m'
       - name: 'Checkout source code'
         uses: actions/checkout@v2
       - name: 'Install Composer dependencies'
