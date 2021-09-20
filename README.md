@@ -51,9 +51,9 @@ cd string-stream && ./vendor/bin/phpunit
 
 # License
 
-This project is subject to the terms of the Mozilla Public License, v2.0. Please
-refer to `LICENSE.txt` for more information, or visit the following URL to get a
-copy of the license: http://mozilla.org/MPL/2.0/
+This project is subject to the terms of The MIT License. Please refer to
+`LICENSE.txt` for more information, or visit the following URL to get a copy of
+the license: https://opensource.org/licenses/MIT
 
 [PSR-7 stream interface]: https://www.php-fig.org/psr/psr-7/#34-psrhttpmessagestreaminterface
 [release page]: https://github.com/clayfreeman/string-stream/releases

@@ -11,10 +11,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \ClayFreeman\StringStream\SerializableStreamTrait
  * @covers \ClayFreeman\StringStream\StringStream
  *
- * @license http://mozilla.org/MPL/2.0/ MPL-2.0
- * This file is subject to the terms of the Mozilla Public License, v2.0. If a
- * copy of the MPL was not distributed with this file, You can obtain one at the
- * above URI.
+ * @license https://opensource.org/licenses/MIT MIT
  */
 final class StringStreamTest extends TestCase {
 
