@@ -20,7 +20,10 @@ php -m
 echo Download and verify the Composer installer ... >&2
 curl 'https://getcomposer.org/installer' > composer-setup.php
 
-if [[ $(sha384sum composer-setup.php | awk '{print $1}') -ne 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6' ]]
+ACTUAL_HASH=$(sha384sum composer-setup.php | awk '{print $1}')
+EXPECT_HASH=dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6
+
+if [[ $ACTUAL_HASH -ne $EXPECT_HASH ]]
 then
   echo ERROR: Composer installer checksum verification failed. >&2
   exit 1
