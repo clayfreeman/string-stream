@@ -7,8 +7,6 @@ use ClayFreeman\StringStream\StringStream;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \ClayFreeman\StringStream\CloneableStreamTrait
- * @covers \ClayFreeman\StringStream\SerializableStreamTrait
  * @covers \ClayFreeman\StringStream\StringStream
  *
  * @license https://opensource.org/licenses/MIT MIT
