@@ -29,6 +29,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "*": false
+        },
+        "platform": {
+            "php": "8.1"
         }
     }
 }

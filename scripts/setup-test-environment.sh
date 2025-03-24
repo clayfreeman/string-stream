@@ -6,13 +6,13 @@ PHP_VERSION='8.1'
 echo Install required packages ... >&2
 sudo apt-add-repository -y ppa:ondrej/php
 sudo apt-get -qq install --no-install-recommends --no-install-suggests \
-  curl p7zip-full php"$PHP_VERSION"-{cli,curl,mbstring,xdebug,xml,zip} unzip
+  curl p7zip-full php"$PHP_VERSION"-{cli,curl,mbstring,pcov,xml,zip} unzip
 
 echo Set the default version of PHP ... >&2
 sudo update-alternatives --set php $(which php"$PHP_VERSION")
 
-echo Enable the XDebug extension for PHP ... >&2
-sudo phpenmod xdebug
+echo Enable the PCOV extension for PHP ... >&2
+sudo phpenmod pcov
 
 echo Show the current PHP version and its enabled extensions ... >&2
 php -v

@@ -13,9 +13,8 @@ jobs:
         uses: paambaati/codeclimate-action@v9.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-          XDEBUG_MODE: coverage
         with:
-          coverageCommand: ./vendor/bin/phpunit
+          coverageCommand: ./vendor/bin/phpunit --coverage-clover=clover.xml
           coverageLocations: clover.xml:clover
       - name: 'Run PHPStan tests'
         run: ./vendor/bin/phpstan analyze --no-progress --level=8 src tests
