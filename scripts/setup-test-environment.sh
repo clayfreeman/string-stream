@@ -8,14 +8,10 @@ echo Install required packages ... >&2
 sudo apt-get remove --purge 'php*'
 sudo apt-add-repository -y ppa:ondrej/php
 sudo apt-get install --no-install-recommends --no-install-suggests -y \
-  curl p7zip-full php$PHP_VERSION-{cli,curl,mbstring,xml,zip} unzip
+  curl p7zip-full php$PHP_VERSION-{cli,curl,mbstring,pcov,xml,zip} unzip
 
 echo Set the default version of PHP ... >&2
 sudo update-alternatives --set php $(which php$PHP_VERSION)
-
-echo Install the PCOV extension for PHP ... >&2
-sudo pecl install pcov
-echo extension=pcov.so | sudo tee /etc/php/$PHP_VERSION/mods-available/pcov.ini
 
 echo Enable the PCOV extension for PHP ... >&2
 sudo phpenmod pcov
