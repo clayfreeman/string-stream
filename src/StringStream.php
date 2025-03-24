@@ -13,6 +13,8 @@ use Psr\Http\Message\StreamInterface;
  */
 class StringStream implements StreamInterface {
 
+  use FullyMutableStreamTrait;
+
   /**
    * The internal memory buffer.
    *
@@ -212,27 +214,6 @@ class StringStream implements StreamInterface {
     }
 
     return NULL;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isReadable(): bool {
-    return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isSeekable(): bool {
-    return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function isWritable(): bool {
-    return TRUE;
   }
 
   /**
