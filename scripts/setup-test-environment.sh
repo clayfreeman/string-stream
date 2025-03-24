@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 export PHP_VERSION='8.1'
 
 echo Install required packages ... >&2
-sudo apt-get remove --purge php*
+sudo apt-get remove --purge 'php*'
 sudo apt-add-repository -y ppa:ondrej/php
 sudo apt-get install --no-install-recommends --no-install-suggests -y \
   curl p7zip-full php$PHP_VERSION-{cli,curl,mbstring,xml,zip} unzip
