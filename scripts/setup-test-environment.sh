@@ -1,27 +1,37 @@
 #!/usr/bin/env bash
-set -xeuo pipefail
+set -euo pipefail
 
-# Install required packages.
+PHP_VERSION='8.1'
+
+echo Install required packages ... >&2
 sudo apt-add-repository -y ppa:ondrej/php
-sudo apt-get -qq install curl php8.1-cli php8.1-curl php8.1-mbstring php8.1-xdebug php8.1-xml php8.1-zip unzip
+sudo apt-get -qq install curl p7zip-full php"$PHP_VERSION"-{cli,curl,mbstring,xdebug,xml,zip} unzip
 
-# Enable the XDebug extension for PHP.
+echo Set the default version of PHP ... >&2
+sudo update-alternatives --set php $(which php"$PHP_VERSION")
+
+echo Enable the XDebug extension for PHP ... >&2
 sudo phpenmod xdebug
 
-# Show the current PHP version and its enabled extensions.
-php -v; echo
+echo Show the current PHP version and its enabled extensions ... >&2
+php -v
 php -m
 
-# Download and install Composer.
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php -r "if (hash_file('sha384', 'composer-setup.php') === 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6') { echo 'Installer verified'.PHP_EOL; } else { echo 'Installer corrupt'.PHP_EOL; unlink('composer-setup.php'); exit(1); }"
+echo Download and verify the Composer installer ... >&2
+curl 'https://getcomposer.org/installer' > composer-setup.php
+
+if [[ $(sha384sum composer-setup.php | awk '{print $1}') -ne 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6' ]]
+then
+  echo ERROR: Composer installer checksum verification failed. >&2
+  exit 1
+fi
+
+echo Run and remove the Composer installer ... >&2
 php composer-setup.php
+rm composer-setup.php
 
-# Remove the Composer installer.
-php -r "unlink('composer-setup.php');"
-
-# Move the Composer executable to PATH.
+echo Move the Composer executable to PATH ... >&2
 sudo mv composer.phar /usr/local/bin/composer
 
-# Install all package dependencies.
+echo Install all package dependencies ... >&2
 composer install --no-interaction --no-progress
