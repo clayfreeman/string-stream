@@ -5,27 +5,17 @@ jobs:
     name: 'Testing'
     runs-on: ubuntu-latest
     steps:
-      - name: 'Add ppa:ondrej/php repository'
-        run: 'sudo apt-add-repository -y ppa:ondrej/php'
-      - name: 'Install system dependencies'
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: 'sudo apt-get -qq install composer php8.1-cli php8.1-xdebug'
-      - name: 'Enable Xdebug extension for PHP'
-        run: 'sudo phpenmod -v 8.1 -s cli xdebug'
-      - name: 'Print enabled PHP extensions'
-        run: 'php8.1 -m'
       - name: 'Checkout source code'
         uses: actions/checkout@v2
-      - name: 'Install Composer dependencies'
-        run: 'composer install --no-interaction --no-progress'
+      - name: 'Set up the test environment'
+        run: ./scripts/setup-test-environment.sh
       - name: 'Run PHPUnit tests'
         uses: paambaati/codeclimate-action@v9.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
           XDEBUG_MODE: coverage
         with:
-          coverageCommand: 'php8.1 ./vendor/bin/phpunit'
+          coverageCommand: ./vendor/bin/phpunit
           coverageLocations: clover.xml:clover
       - name: 'Run PHPStan tests'
-        run: 'php8.1 ./vendor/bin/phpstan analyze --no-progress --level=8 src tests'
+        run: ./vendor/bin/phpstan analyze --no-progress --level=8 src tests
