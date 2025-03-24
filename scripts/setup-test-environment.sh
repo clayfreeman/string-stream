@@ -7,7 +7,7 @@ export PHP_VERSION='8.1'
 echo Install required packages ... >&2
 sudo apt-add-repository -y ppa:ondrej/php
 sudo apt-get install --no-install-recommends --no-install-suggests -y \
-  curl p7zip-full php"$PHP_VERSION"-{cli,curl,mbstring,xml,zip} unzip
+  curl p7zip-full php-pear php"$PHP_VERSION"-{cli,curl,mbstring,xml,zip} unzip
 
 echo Set the default version of PHP ... >&2
 sudo update-alternatives --set php $(which php"$PHP_VERSION")
