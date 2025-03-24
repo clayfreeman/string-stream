@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use ClayFreeman\StringStream\StringStream;
 
@@ -48,30 +48,30 @@ final class StringStreamTest extends TestCase {
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
-    $test = (string) $stream;
+    (string) $stream;
   }
 
   /**
    * @covers \ClayFreeman\StringStream\StringStream::close()
    */
   public function testClose(): void {
-    $stream = new StringStream($input = 'sample');
+    $stream = new StringStream('sample');
     $stream->close();
 
     $this->expectException(\RuntimeException::class);
-    $test = (string) $stream;
+    (string) $stream;
   }
 
   /**
    * @covers \ClayFreeman\StringStream\StringStream::detach()
    */
   public function testDetach(): void {
-    $stream = new StringStream($input = 'sample');
-    $this->assertIsResource($fh = $stream->detach());
+    $stream = new StringStream('sample');
+    $this->assertIsResource($stream->detach());
     $this->assertNull($stream->detach());
 
     $this->expectException(\RuntimeException::class);
-    $test = (string) $stream;
+    (string) $stream;
   }
 
   /**
@@ -97,7 +97,7 @@ final class StringStreamTest extends TestCase {
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
-    $test = $stream->tell();
+    $stream->tell();
   }
 
   /**
@@ -137,14 +137,14 @@ final class StringStreamTest extends TestCase {
     $this->assertSame(\str_pad($input, $offset4, "\0"), (string) $stream);
 
     $this->expectException(\RuntimeException::class);
-    $stream->seek($offset5 = -2, \SEEK_SET);
+    $stream->seek(-2, \SEEK_SET);
   }
 
   /**
    * @covers \ClayFreeman\StringStream\StringStream::seek()
    */
   public function testSeekClosed(): void {
-    $stream = new StringStream($input = 'sample');
+    $stream = new StringStream('sample');
 
     $stream->close();
     $this->expectException(\RuntimeException::class);
@@ -155,7 +155,7 @@ final class StringStreamTest extends TestCase {
    * @covers \ClayFreeman\StringStream\StringStream::rewind()
    */
   public function testRewind(): void {
-    $stream = new StringStream($input = 'sample');
+    $stream = new StringStream('sample');
 
     $stream->seek($offset = 3, \SEEK_SET);
     $this->assertSame($offset, $stream->tell());
@@ -213,7 +213,10 @@ final class StringStreamTest extends TestCase {
     $this->assertSame($offset, $stream->tell());
     $this->assertSame(\substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
-    $this->assertSame(\substr($input, $offset, 1), $chr = $stream->read(1)); $offset += \strlen($chr);
+    $this->assertSame(\substr($input, $offset, 1), $chr = $stream->read(1));
+
+    $offset += \strlen($chr);
+
     $this->assertSame($offset, $stream->tell());
     $this->assertSame(\substr($input, $offset, 1), $stream->peek());
     $this->assertSame($offset, $stream->tell());
@@ -249,7 +252,7 @@ final class StringStreamTest extends TestCase {
    * @covers \ClayFreeman\StringStream\StringStream::getContents()
    */
   public function testGetMetadata(): void {
-    $stream = new StringStream($input = 'sample');
+    $stream = new StringStream('sample');
     $this->assertIsArray($stream->getMetadata());
     $this->assertEmpty($stream->getMetadata());
     $this->assertNull($stream->getMetadata('test'));
@@ -261,7 +264,7 @@ final class StringStreamTest extends TestCase {
    * @covers \ClayFreeman\StringStream\StringStream::isWritable()
    */
   public function testFeatureFlags(): void {
-    $stream = new StringStream($input = 'sample');
+    $stream = new StringStream('sample');
     $this->assertSame(TRUE, $stream->isReadable());
     $this->assertSame(TRUE, $stream->isSeekable());
     $this->assertSame(TRUE, $stream->isWritable());
@@ -275,20 +278,11 @@ final class StringStreamTest extends TestCase {
    */
   public function testSerialization(): void {
     $stream = new StringStream($input = 'sample');
-    $this->assertSame($input, (string) \unserialize(\serialize($stream)));
+    $this->assertSame($input, (string) \unserialize(\serialize($stream), ['allowed_classes' => [StringStream::class]]));
 
     $stream->seek($pos = \intval(\strlen($input) / 2));
     $this->assertSame($pos, $stream->tell());
-    $this->assertSame($pos, \unserialize(\serialize($stream))->tell());
-
-    $stream = new StringStream($input = 'sample');
-    $stream->unserialize($stream->serialize());
-    $this->assertSame($input, (string) $stream);
-
-    $stream->seek($pos = \intval(\strlen($input) / 2));
-    $this->assertSame($pos, $stream->tell());
-    $stream->unserialize($stream->serialize());
-    $this->assertSame($pos, $stream->tell());
+    $this->assertSame($pos, \unserialize(\serialize($stream), ['allowed_classes' => [StringStream::class]])->tell());
   }
 
   /**

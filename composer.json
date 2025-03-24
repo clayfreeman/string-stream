@@ -12,13 +12,13 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": "^8.0 || ^7.4",
-        "psr/http-message": "^1.0"
+        "php": ">=8.1",
+        "psr/http-message": "^1.1 || ^2.0"
     },
     "require-dev": {
         "drupal/coder": "^8.3",
-        "phpstan/phpstan": "^0.12.27",
-        "phpunit/phpunit": "^9.2"
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^9.6"
     },
     "autoload": {
         "psr-4": {
@@ -27,8 +27,8 @@
     },
     "config": {
         "sort-packages": true,
-        "platform": {
-            "php": "7.4"
+        "allow-plugins": {
+            "*": false
         }
     }
 }

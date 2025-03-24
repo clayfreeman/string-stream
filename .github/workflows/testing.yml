@@ -10,7 +10,7 @@ jobs:
       - name: 'Install system dependencies'
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: 'sudo apt-get -qq install composer php7.4-cli php7.4-xdebug'
+        run: 'sudo apt-get -qq install composer php8.1-cli php8.1-xdebug'
       - name: 'Enable Xdebug extension for PHP'
         run: 'sudo phpenmod xdebug'
       - name: 'Print enabled PHP extensions'
@@ -20,7 +20,7 @@ jobs:
       - name: 'Install Composer dependencies'
         run: 'composer install --no-interaction --no-progress'
       - name: 'Run PHPUnit tests'
-        uses: paambaati/codeclimate-action@v2.7.5
+        uses: paambaati/codeclimate-action@v9.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
           XDEBUG_MODE: coverage

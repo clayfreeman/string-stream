@@ -41,8 +41,8 @@ var_export((string) $stream); // 'sample stringsome more contents'
 
 ## Testing
 
-Tests for this package are written using PHPUnit 9. To run the tests, you'll
-need to have PHP 7.4 and Composer installed:
+Tests for this package are written using PHPUnit. To run the tests, you'll need
+to have PHP and Composer installed:
 
 ```bash
 git clone https://github.com/clayfreeman/string-stream.git

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace ClayFreeman\StringStream;
 
@@ -11,10 +11,7 @@ use Psr\Http\Message\StreamInterface;
  *
  * @license https://opensource.org/licenses/MIT MIT
  */
-class StringStream implements \Serializable, StreamInterface {
-
-  use CloneableStreamTrait;
-  use SerializableStreamTrait;
+class StringStream implements StreamInterface {
 
   /**
    * The internal memory buffer.
@@ -41,6 +38,38 @@ class StringStream implements \Serializable, StreamInterface {
   }
 
   /**
+   * Clones the internal state of this object.
+   */
+  public function __clone() {
+    // At this point, both the cloned instance and the original instance still
+    // refer to the same underlying resource.
+    //
+    // Fetch the original resource's current position.
+    $pos = $this->tell();
+
+    // Replace the resource in the cloned instance with a new resource
+    // containing the original resource's content.
+    $this->__construct((string) $this);
+    // Restore the seek position from the original resource.
+    $this->seek($pos);
+  }
+
+  /**
+   * Magic method to serialize the object.
+   *
+   * @return mixed[]
+   *   An array representation of this object at the time of serialization.
+   *
+   * @internal
+   */
+  public function __serialize(): array {
+    return [
+      'buffer' => (string) $this,
+      'pos' => $this->tell(),
+    ];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function __toString(): string {
@@ -51,6 +80,20 @@ class StringStream implements \Serializable, StreamInterface {
     $this->seek($pos);
 
     return $str;
+  }
+
+  /**
+   * Magic method to unserialize the object.
+   *
+   * @param mixed[] $data
+   *   An array representation of this object at the time of serialization.
+   *
+   * @internal
+   */
+  public function __unserialize(array $data): void {
+    // Create a new resource with the supplied buffer content and seek position.
+    $this->__construct($data['buffer']);
+    $this->seek($data['pos']);
   }
 
   /**
@@ -164,7 +207,7 @@ class StringStream implements \Serializable, StreamInterface {
     }
 
     // If there's a numeric size available, return it.
-    if (\is_array($info) && \array_key_exists('size', $info) && \is_numeric($info['size'])) {
+    if (\is_array($info) && \array_key_exists('size', $info)) {
       return (int) $info['size'];
     }
 
@@ -224,7 +267,7 @@ class StringStream implements \Serializable, StreamInterface {
    */
   public function read($length): string {
     // Attempt to read from a valid buffer, throw an exception on failure.
-    if (!\is_resource($this->buffer) || ($string = \fread($this->buffer, $length)) === FALSE) {
+    if ($length < 1 || !\is_resource($this->buffer) || ($string = \fread($this->buffer, $length)) === FALSE) {
       throw new \RuntimeException();
     }
 
