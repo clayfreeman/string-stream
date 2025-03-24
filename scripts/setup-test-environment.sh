@@ -12,8 +12,9 @@ sudo apt-get install --no-install-recommends --no-install-suggests -y \
 echo Set the default version of PHP ... >&2
 sudo update-alternatives --set php $(which php"$PHP_VERSION")
 
-echo Install the PCOV extension for PHP ... >&2
+echo Install and enable the PCOV extension for PHP ... >&2
 sudo pecl install pcov
+sudo phpenmod pcov
 
 echo Show the current PHP version and its enabled extensions ... >&2
 php -v
